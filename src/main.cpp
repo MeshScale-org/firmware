@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "variant.h"
+
 /*
   RadioLib SX126x Ping-Pong Example
 
@@ -13,10 +14,13 @@
   https://jgromes.github.io/RadioLib/
 */
 
-// include the library
+// includes
 #include <RadioLib.h>
+#include <Reticulum.h>
+#include "interfaces/radioLibInterface.h"
+#include "os/fileSystem.h"
 
-#ifdef ESP32
+#ifdef MCU_ESP32
 #define INITIATING_NODE
 #endif
 // SX1262
@@ -35,7 +39,7 @@ volatile bool operationDone = false;
 // is transmitted or received by the module
 // IMPORTANT: this function MUST be 'void' type
 //            and MUST NOT have any arguments!
-#if defined(ESP8266) || defined(ESP32)
+#if defined(ESP8266) || defined(MCU_ESP32)
 ICACHE_RAM_ATTR
 #endif
 void setFlag(void)

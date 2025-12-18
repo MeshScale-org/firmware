@@ -34,8 +34,6 @@ extern "C"
 {
 #endif // __cplusplus
 
-#define heltec_T114_v2
-
 #define USE_ST7789
 
 #define ST7789_NSS 11
@@ -120,8 +118,6 @@ No longer populated on PCB
      * Lora radio
      */
 
-#define USE_SX1262
-// #define USE_SX1268
 #define SX126X_POWER_EN 37
 #define SX126X_CS (0 + 24)
 #define SX126X_DIO1 (0 + 20)
