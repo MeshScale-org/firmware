@@ -55,11 +55,21 @@ void radioLibInterface::loop()
 
 			// read packet
 			buffer.clear();
+
+			// TODO: Can be optimized
 			uint16_t len = radio->getPacketLength();
+			uint8_t *receivedBytes = new uint8_t[len];
+			while (receivedBytes == nullptr)
+			{
+				Serial.println("bad alloc");
+				delay(500);
+			}
+			radio->readData(receivedBytes, len);
 			for (uint16_t i = 0; i < len; i++)
 			{
-				buffer << (uint8_t)radio->read();
+				buffer << receivedBytes[i];
 			}
+			delete[] receivedBytes;
 
 			Serial.println("RSSI: " + String(radio->getRSSI()));
 			Serial.println("Snr: " + String(radio->getSNR()));

@@ -119,7 +119,7 @@ void reticulum_setup()
 
     Serial.println("Radio begin");
     int state = radio.begin(869.5, 125, 9, 7, 18, 10, 8, 1.6, false);
-    delay(2000);
+
     if (state == RADIOLIB_ERR_NONE)
     {
       Serial.println(F("success!"));
@@ -229,7 +229,7 @@ void setup()
 #else
   SPI.begin();
 #endif
-  delay(5000);
+
   Serial.print("Hello from device\n");
 
   // set the function that will be called
@@ -238,7 +238,7 @@ void setup()
 
   reticulum_setup();
   // reduce printouts after setup
-  RNS::loglevel(RNS::LOG_WARNING);
+  // RNS::loglevel(RNS::LOG_WARNING);
 }
 
 unsigned long lastAnnounce = millis();
@@ -266,6 +266,7 @@ void loop()
       radio.finishReceive();
       radioLib_interface_impl->receiveDone = 1;
       Serial.println("###################################  receving done!   ###################################");
+      radio.startReceive();
     }
   }
 
@@ -278,7 +279,7 @@ void loop()
     toggleLed();
     last_announce = millis();
     Serial.printf("announcing\n");
-    destination.announce();
+    reticulum_announce();
   }
 
   delay(50);
