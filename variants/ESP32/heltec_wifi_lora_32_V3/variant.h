@@ -13,6 +13,11 @@
 #define SX126X_RESET 12
 #define SX126X_BUSY 13
 
+// For LORA, spi 0
+#define PIN_SPI_MISO 11
+#define PIN_SPI_MOSI 10
+#define PIN_SPI_SCK 9
+
 // SSD1306
 #define OLED0_SDA 17
 #define OLED0_SCL 18

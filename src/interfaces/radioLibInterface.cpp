@@ -7,14 +7,14 @@
 
 using namespace RNS;
 
-radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/) : RNS::InterfaceImpl(name)
+radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, PhysicalLayer *radio) : radio(radio), RNS::InterfaceImpl(name)
 {
 
 	_IN = true;
 	_OUT = true;
 	// p self.bitrate = self.r_sf * ( (4.0/self.r_cr) / (math.pow(2,self.r_sf)/(self.r_bandwidth/1000)) ) * 1000
-	_bitrate = (double)spreading * ((4.0 / coding) / (pow(2, spreading) / (bandwidth / 1000.0))) * 1000.0;
-	_HW_MTU = 508;
+	_bitrate = 100; //(double)spreading * ((4.0 / coding) / (pow(2, spreading) / (bandwidth / 1000.0))) * 1000.0;
+	_HW_MTU = 200;
 }
 
 /*virtual*/ radioLibInterface::~radioLibInterface()
@@ -25,104 +25,73 @@ radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/)
 bool radioLibInterface::start()
 {
 	_online = false;
-	INFO("LoRa initializing...");
-	/*
-	#ifdef ARDUINO
-		SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
-		delay(1500);
+	INFO("Start receive...");
+	Serial.printf("radio start receive with status code: %d\n", radio->startReceive());
 
-		LoRa.setPins(RADIO_CS_PIN, RADIO_RST_PIN, RADIO_DIO0_PIN);
-
-		// initialize radio
-		if (!LoRa.begin(frequency))
-		{
-			ERROR("LoRa init failed. Check your connections.");
-			return false;
-		}
-
-		LoRa.setSignalBandwidth(bandwidth);
-		LoRa.setSpreadingFactor(spreading);
-		LoRa.setCodingRate4(coding);
-		LoRa.setPreambleLength(20);
-		LoRa.setTxPower(power);
-
-		INFO("LoRa init succeeded.");
-		TRACE("LoRa bandwidth is " + std::to_string(Utilities::OS::round(bitrate() / 1000.0, 2)) + " Kbps");
-	#endif
-	*/
 	_online = true;
 	return true;
 }
 
 void radioLibInterface::stop()
 {
-
 	_online = false;
 }
 
 void radioLibInterface::loop()
 {
-	/*
-		if (_online)
+
+	if (_online)
+	{
+
+		// Check for incoming packet
+#ifdef ARDUINO
+		if (receiveDone)
 		{
+			receiveDone = 0;
+			TRACE("radioLibInterface: receiving bytes...");
 
-			// Check for incoming packet
-	#ifdef ARDUINO
-			int available = LoRa.parsePacket();
-			if (available > 0)
+			// read header (for detecting split packets)
+			// uint8_t header = radio->read();
+
+			// read packet
+			buffer.clear();
+			uint16_t len = radio->getPacketLength();
+			for (uint16_t i = 0; i < len; i++)
 			{
-				TRACE("radioLibInterface: receiving bytes...");
-
-				// read header (for detecting split packets)
-				uint8_t header = LoRa.read();
-
-				// CBA TODO add support for split packets
-
-				// read packet
-				buffer.clear();
-				while (LoRa.available())
-				{
-					buffer << (uint8_t)LoRa.read();
-				}
-
-				Serial.println("RSSI: " + String(LoRa.packetRssi()));
-				Serial.println("Snr: " + String(LoRa.packetSnr()));
-
-				on_incoming(buffer);
+				buffer << (uint8_t)radio->read();
 			}
-	#endif
+
+			Serial.println("RSSI: " + String(radio->getRSSI()));
+			Serial.println("Snr: " + String(radio->getSNR()));
+
+			on_incoming(buffer);
 		}
-	*/
+#endif
+	}
 }
 
 /*virtual*/ void radioLibInterface::send_outgoing(const Bytes &data)
 {
-	/*
+
 	DEBUG(toString() + ".on_outgoing: data: " + data.toHex());
 	try
 	{
 		if (_online)
 		{
+
 			TRACE("radioLibInterface: sending " + std::to_string(data.size()) + " bytes...");
-			// Send packet
+			//  Send packet
 #ifdef ARDUINO
 
-			LoRa.beginPacket(); // start packet
+			// uint8_t *header = 0;
+			//*header = (Cryptography::randomnum(256) & 0xF0);
 
-			// write header (for detecting split packets)
-			uint8_t header = Cryptography::randomnum(256) & 0xF0;
-			LoRa.write(header);
+			// radio->startTransmit(header, 1);
 
 			// CBA TODO add support for split packets
 
 			// add payload
-			// LoRa.print((const char*)data.data());
-			for (size_t i = 0; i < data.size(); ++i)
-			{
-				LoRa.write(data.data()[i]);
-			}
-
-			LoRa.endPacket(); // finish packet and send it
+			radio->startTransmit(data.data(), data.size());
 
 #endif
 			TRACE("radioLibInterface: sent bytes");
@@ -135,7 +104,6 @@ void radioLibInterface::loop()
 	{
 		ERROR("Could not transmit on " + toString() + ". The contained exception was: " + e.what());
 	}
-	*/
 }
 
 /*virtual*/ void radioLibInterface::on_incoming(const Bytes &data)

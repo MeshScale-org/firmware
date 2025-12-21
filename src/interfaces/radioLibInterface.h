@@ -1,8 +1,12 @@
 #pragma once
 
+// reticulum
 #include "../src/Interface.h"
 #include "../src/Bytes.h"
 #include "../src/Type.h"
+
+// radiolib
+#include <RadioLib.h>
 
 #ifdef ARDUINO
 #include <SPI.h>
@@ -10,38 +14,55 @@
 
 #include <stdint.h>
 
+/*
+struct FSKConfig_t
+{
+};
+struct LoraConfig_t
+{
+	float frequency = 0;
+	float bandwidth = 0;
+	uint8_t spreading = 0;
+	uint8_t coding = 0;
+	uint8_t power = 0;
+};
+struct LRFHSSConfig_t
+{
+};
+
+union radioConfig_t
+{
+	FSKConfig_t FSKConfig;
+	LoraConfig_t LoraConfig;
+	LRFHSSConfig_t LRFHSSConfig;
+};
+
+struct radioLibInterfaceConfig
+{
+	ModemType_t modem = RADIOLIB_MODEM_NONE;
+	radioConfig_t radioConfig;
+};
+*/
 class radioLibInterface : public RNS::InterfaceImpl
 {
 
 public:
-	// z def get_address_for_if(name):
-	// z def get_broadcast_for_if(name):
-
-public:
 	// p def __init__(self, owner, name, device=None, bindip=None, bindport=None, forwardip=None, forwardport=None):
-	radioLibInterface(const char *name = "radioLibInterface");
+	radioLibInterface(const char *name, PhysicalLayer *radio);
 	virtual ~radioLibInterface();
 
 	virtual bool start();
 	virtual void stop();
 	virtual void loop();
 
-	// virtual inline std::string toString() const { return "radioLibInterface[" + name() + "]"; }
+	volatile bool sendDone = 0;
+	volatile bool receiveDone = 0;
 
 private:
 	virtual void send_outgoing(const RNS::Bytes &data);
 	void on_incoming(const RNS::Bytes &data);
 
 private:
-	// uint8_t buffer[Type::Reticulum::MTU] = {0};
-	const uint8_t message_count = 0;
 	RNS::Bytes buffer;
-
-	const long frequency = 915E6;
-
-	// Reticulum default
-	float bandwidth = 125E3;
-	uint8_t spreading = 8;
-	const int coding = 5;
-	const int power = 17;
+	PhysicalLayer *radio;
 };
