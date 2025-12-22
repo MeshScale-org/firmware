@@ -1,3 +1,6 @@
+
+#ifndef EXCLUDE_INTERFACE_RADIOLIB
+
 #include "radioLibInterface.h"
 
 #include "../src/Log.h"
@@ -122,3 +125,5 @@ void radioLibInterface::loop()
 	// Pass received data on to transport
 	InterfaceImpl::handle_incoming(data);
 }
+
+#endif

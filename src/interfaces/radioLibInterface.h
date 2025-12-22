@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef EXCLUDE_INTERFACE_RADIOLIB
+
 // reticulum
 #include "../src/Interface.h"
 #include "../src/Bytes.h"
@@ -66,3 +68,5 @@ private:
 	RNS::Bytes buffer;
 	PhysicalLayer *radio;
 };
+
+#endif

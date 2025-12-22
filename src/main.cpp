@@ -7,13 +7,15 @@
 #include "interfaces/radioLibInterface.h"
 #include "os/fileSystem.h"
 
+#ifndef EXCLUDE_INTERFACE_UDP
+#include "interfaces/UDPInterface.h"
+#endif
+
 // SX1262
 SX1262 radio = new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY);
 
 // save transmission states between loops
 int transmissionState = RADIOLIB_ERR_NONE;
-
-const char *APP_NAME = "example_utilities";
 
 // We initialise two lists of strings to use as app_data
 const char *fruits[] = {"Peach", "Quince", "Date", "Tangerine", "Pomelo", "Carambola", "Grape"};
@@ -67,6 +69,9 @@ void onPingPacket(const RNS::Bytes &data, const RNS::Packet &packet)
 
 RNS::Reticulum reticulum({RNS::Type::NONE});
 RNS::Interface radioLib_interface(RNS::Type::NONE);
+#ifndef EXCLUDE_INTERFACE_UDP
+RNS::Interface udp_interface(RNS::Type::NONE);
+#endif
 RNS::FileSystem filesystem(RNS::Type::NONE);
 RNS::Identity identity({RNS::Type::NONE});
 RNS::Destination destination({RNS::Type::NONE});
@@ -117,6 +122,7 @@ void reticulum_setup()
     filesystem.init();
     RNS::Utilities::OS::register_filesystem(filesystem);
 
+    // radiolib interface
     Serial.println("Radio begin");
     int state = radio.begin(869.5, 125, 9, 7, 18, 10, 8, 1.6, false);
 
@@ -134,18 +140,29 @@ void reticulum_setup()
         delay(10);
       }
     }
+
+    // register radiolib interface
     Serial.println("Registering LoRaInterface instances with Transport...");
     radioLib_interface_impl = new radioLibInterface("SX1262Interface", &radio);
     radioLib_interface = radioLib_interface_impl;
-    radioLib_interface.mode(RNS::Type::Interface::MODE_GATEWAY);
+    radioLib_interface.mode(RNS::Type::Interface::MODE_FULL);
     RNS::Transport::register_interface(radioLib_interface);
+
+// register UDP interface
+#ifndef EXCLUDE_INTERFACE_UDP
+    HEAD("Registering UDPInterface instances with Transport...", RNS::LOG_TRACE);
+    udp_interface = new UDPInterface();
+    udp_interface.mode(RNS::Type::Interface::MODE_FULL);
+    RNS::Transport::register_interface(udp_interface);
+    udp_interface.start();
+#endif
 
     Serial.println("Starting LoRaInterface...");
     radioLib_interface_impl->start();
 
     Serial.println("Creating Reticulum instance...");
     reticulum = RNS::Reticulum();
-    reticulum.transport_enabled(false);
+    reticulum.transport_enabled(true);
     reticulum.start();
 
     Serial.println("Creating Identity instance...");
@@ -160,7 +177,7 @@ void reticulum_setup()
     identity.load_private_key(prv_bytes);
 
     Serial.println("Creating Destination instance...");
-    destination = RNS::Destination(identity, RNS::Type::Destination::IN, RNS::Type::Destination::SINGLE, "app", "aspects");
+    destination = RNS::Destination(identity, RNS::Type::Destination::IN, RNS::Type::Destination::SINGLE, "lxmf", "delivery");
 
     // Register DATA packet callback
     Serial.println("Registering packet callback with Destination...");
@@ -276,9 +293,9 @@ void loop()
   // announce every interval time
   if (last_announce + announceInterval < millis())
   {
+    // Serial.printf("udp interface: %s, online: %d, tostring: %s", udp_interface.debugString(), udp_interface.online(), udp_interface.toString());
     toggleLed();
     last_announce = millis();
-    Serial.printf("announcing\n");
     reticulum_announce();
   }
 
