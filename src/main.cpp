@@ -6,6 +6,7 @@
 #include <Reticulum.h>
 #include "interfaces/radioLibInterface.h"
 #include "os/fileSystem.h"
+#include "interfaceManager.h"
 
 #ifndef EXCLUDE_INTERFACE_UDP
 #include "interfaces/UDPInterface.h"
@@ -107,6 +108,31 @@ void reticulum_announce()
     //  test packet send
     destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]));
   }
+}
+
+void setupIfManager()
+{
+  interfaceManager::managedIf_t newInterface;
+
+  newInterface.name = "SX1262-loraInterface";
+
+  newInterface.ifDescriptionType = interfaceManager::IF_SX1262;
+  newInterface.ifDescription.radiolibDescription.radio = new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY));
+  newInterface.ifDescription.radiolibDescription.tcxoVoltage = 1.6;
+  newInterface.ifDescription.radiolibDescription.useRegulatorLDO = false;
+
+  newInterface.ifConfigTypes = interfaceManager::CONFIG_LORA;
+  newInterface.ifConfig.loraConfig.frequency = 869.5;
+  newInterface.ifConfig.loraConfig.bandwidth = 125;
+  newInterface.ifConfig.loraConfig.spreadingFactor = 9;
+  newInterface.ifConfig.loraConfig.codingRate = 7;
+  newInterface.ifConfig.loraConfig.syncWord = 18;
+  newInterface.ifConfig.loraConfig.power = 10;
+
+  newInterface.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
+
+  interfaceManager::addInterface(newInterface);
+  Serial.printf("Interfaces are:\n %s\n", interfaceManager::interfacesToString().c_str());
 }
 
 void reticulum_setup()
@@ -241,6 +267,7 @@ void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
+  delay(5000);
 #ifdef ESP32
   SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
 #else
@@ -248,7 +275,7 @@ void setup()
 #endif
 
   Serial.print("Hello from device\n");
-
+  delay(5000);
   // set the function that will be called
   // when new packet is received
   radio.setDio1Action(setIrqFlag);
@@ -256,6 +283,8 @@ void setup()
   reticulum_setup();
   // reduce printouts after setup
   // RNS::loglevel(RNS::LOG_WARNING);
+  Serial.printf("#################### Starting setupIfManager #####################\n");
+  setupIfManager();
 }
 
 unsigned long lastAnnounce = millis();
@@ -293,7 +322,6 @@ void loop()
   // announce every interval time
   if (last_announce + announceInterval < millis())
   {
-    // Serial.printf("udp interface: %s, online: %d, tostring: %s", udp_interface.debugString(), udp_interface.online(), udp_interface.toString());
     toggleLed();
     last_announce = millis();
     reticulum_announce();
