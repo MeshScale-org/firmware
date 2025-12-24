@@ -197,4 +197,6 @@ No longer populated on PCB
  *        Arduino objects - C++ only
  *----------------------------------------------------------------------------*/
 
+void variantSetDefaultInterfaces();
+
 #endif

@@ -302,4 +302,6 @@ SO GPIO 39/TXEN MAY NOT BE DEFINED FOR SUCCESSFUL OPERATION OF THE SX1262 - TG
  *        Arduino objects - C++ only
  *----------------------------------------------------------------------------*/
 
+void variantSetDefaultInterfaces();
+
 #endif

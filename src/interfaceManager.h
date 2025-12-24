@@ -65,8 +65,8 @@ public:
 
     struct wifiConfig_t
     {
-        char SSID[20];
-        char KEY[20];
+        const char *SSID;
+        const char *KEY;
     };
 
     union ifConfig_t
@@ -76,16 +76,15 @@ public:
     };
 
     // managed interface data with its type, hardware description/capabilities and config
-    // Would use std::variant (c++17) but gives all sorts of problems because its not as supported
+    // Would use std::variant (c++17) instead of unions but gives all sorts of problems because its not as supported
     struct managedIf_t
     {
         String name = "";
         ifDescriptionType_t ifDescriptionType = IF_NONE;
         ifDescription_t ifDescription;
-        ifConfigTypes_t ifConfigTypes = CONFIG_NONE;
+        ifConfigTypes_t ifConfigType = CONFIG_NONE;
         ifConfig_t ifConfig;
         RNS::Type::Interface::modes rnsIfMode = RNS::Type::Interface::modes::MODE_NONE;
-        String toString() { return name; }
     };
 #endif // true
 
@@ -93,7 +92,7 @@ public:
     interfaceManager() {};
     interfaceManager(interfaceManager &) = delete;
     static bool addInterface(managedIf_t newInterface) { return get().addInterfaceImpl(&newInterface); }
-    static String interfacesToString() { return get().interfacesToStringImpl(); };
+    static String interfacesToString(bool verbose = false) { return get().interfacesToStringImpl(verbose); };
 
 private:
     // get singleton instance
@@ -103,7 +102,7 @@ private:
         return instance;
     }
     bool addInterfaceImpl(managedIf_t *newInterface);
-    String interfacesToStringImpl();
+    String interfacesToStringImpl(bool verbose);
 
 private:
     bool checkNewConfig(managedIf_t *newInterface);

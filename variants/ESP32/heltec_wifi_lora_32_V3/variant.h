@@ -23,3 +23,5 @@
 #define OLED0_SCL 18
 #define OLED0_RST 21
 #define I2C_ADDR 0x3C
+
+void variantSetDefaultInterfaces();

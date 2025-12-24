@@ -110,31 +110,6 @@ void reticulum_announce()
   }
 }
 
-void setupIfManager()
-{
-  interfaceManager::managedIf_t newInterface;
-
-  newInterface.name = "SX1262-loraInterface";
-
-  newInterface.ifDescriptionType = interfaceManager::IF_SX1262;
-  newInterface.ifDescription.radiolibDescription.radio = new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY));
-  newInterface.ifDescription.radiolibDescription.tcxoVoltage = 1.6;
-  newInterface.ifDescription.radiolibDescription.useRegulatorLDO = false;
-
-  newInterface.ifConfigTypes = interfaceManager::CONFIG_LORA;
-  newInterface.ifConfig.loraConfig.frequency = 869.5;
-  newInterface.ifConfig.loraConfig.bandwidth = 125;
-  newInterface.ifConfig.loraConfig.spreadingFactor = 9;
-  newInterface.ifConfig.loraConfig.codingRate = 7;
-  newInterface.ifConfig.loraConfig.syncWord = 18;
-  newInterface.ifConfig.loraConfig.power = 10;
-
-  newInterface.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
-
-  interfaceManager::addInterface(newInterface);
-  Serial.printf("Interfaces are:\n %s\n", interfaceManager::interfacesToString().c_str());
-}
-
 void reticulum_setup()
 {
   INFO("Setting up Reticulum...");
@@ -267,7 +242,9 @@ void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
+  variantSetDefaultInterfaces();
   delay(5000);
+
 #ifdef ESP32
   SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
 #else
@@ -283,8 +260,9 @@ void setup()
   reticulum_setup();
   // reduce printouts after setup
   // RNS::loglevel(RNS::LOG_WARNING);
-  Serial.printf("#################### Starting setupIfManager #####################\n");
-  setupIfManager();
+  delay(100);
+  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString().c_str());
+  delay(500); // give print some time
 }
 
 unsigned long lastAnnounce = millis();
@@ -324,7 +302,7 @@ void loop()
   {
     toggleLed();
     last_announce = millis();
-    reticulum_announce();
+    // reticulum_announce();
   }
 
   delay(50);

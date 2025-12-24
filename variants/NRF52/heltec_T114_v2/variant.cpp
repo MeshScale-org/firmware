@@ -22,6 +22,7 @@
 #include "nrf.h"
 #include "wiring_constants.h"
 #include "wiring_digital.h"
+#include "interfaceManager.h"
 
 const uint32_t g_ADigitalPinMap[] = {
     // P0 - pins 0 and 1 are hardwired for xtal and should never be enabled
@@ -30,15 +31,43 @@ const uint32_t g_ADigitalPinMap[] = {
     // P1
     32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47};
 
+// called by arduino
 void initVariant()
 {
-    // LED1 & LED2
-    pinMode(PIN_LED1, OUTPUT);
-    ledOff(PIN_LED1);
+  // LED1 & LED2
+  pinMode(PIN_LED1, OUTPUT);
+  ledOff(PIN_LED1);
 
-    pinMode(PIN_LED2, OUTPUT);
-    ledOff(PIN_LED2);
+  pinMode(PIN_LED2, OUTPUT);
+  ledOff(PIN_LED2);
 
-    pinMode(PIN_LED3, OUTPUT);
-    ledOff(PIN_LED3);
+  pinMode(PIN_LED3, OUTPUT);
+  ledOff(PIN_LED3);
+}
+
+void variantSetDefaultInterfaces()
+{
+  // add interfaces to interfacemanager
+
+  interfaceManager::managedIf_t newInterface;
+
+  // sx1262 loraInterface
+  newInterface.name = "SX1262-loraInterface";
+
+  newInterface.ifDescriptionType = interfaceManager::IF_SX1262;
+  newInterface.ifDescription.radiolibDescription.radio = new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY));
+  newInterface.ifDescription.radiolibDescription.tcxoVoltage = 1.6;
+  newInterface.ifDescription.radiolibDescription.useRegulatorLDO = false;
+
+  newInterface.ifConfigType = interfaceManager::CONFIG_LORA;
+  newInterface.ifConfig.loraConfig.frequency = 869.5;
+  newInterface.ifConfig.loraConfig.bandwidth = 125;
+  newInterface.ifConfig.loraConfig.spreadingFactor = 9;
+  newInterface.ifConfig.loraConfig.codingRate = 7;
+  newInterface.ifConfig.loraConfig.syncWord = 18;
+  newInterface.ifConfig.loraConfig.power = 10;
+
+  newInterface.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
+
+  interfaceManager::addInterface(newInterface);
 }
