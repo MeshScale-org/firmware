@@ -2,9 +2,7 @@
 
 #ifndef EXCLUDE_INTERFACE_UDP
 
-#include "../src/Interface.h"
-#include "../src/Bytes.h"
-#include "../src/Type.h"
+#include "rnsInterface_base.h"
 
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -18,7 +16,7 @@
 #define DEFAULT_UDP_LOCAL_HOST "192.168.1.14"
 #define DEFAULT_UDP_REMOTE_HOST "192.168.1.255"
 
-class UDPInterface : public RNS::InterfaceImpl
+class UDPInterface : public rnsInterface_base
 {
 
 public:
@@ -37,7 +35,7 @@ public:
 	virtual void stop();
 	virtual void loop();
 
-	virtual inline std::string toString() const { return "UDPInterface[" + _name + "/" + _local_host + ":" + std::to_string(_local_port) + "]"; }
+	virtual inline std::string toString() const { return "UDPInterface[" /* + _name + "/" + _local_host + ":" + std::to_string(_local_port) + "]"*/; }
 	// virtual inline std::string toString() const { return "UDPInterface[" + name() + "]"; }
 
 protected:

@@ -1,4 +1,4 @@
-
+#pragma once
 #include <Arduino.h>
 #include <vector>
 #include <Reticulum.h>
@@ -12,20 +12,19 @@ class interfaceManager
 {
 public:
 // types
-#if true // collapse types
+#pragma region ifTypesDefinitions
     // enum of possible interface types
     enum ifDescriptionType_t
     {
         IF_NONE,
-        IF_SX1262,
-        IF_UDP_WIFI,
-        IF_UPD_ETH,
-        IF_UART
+        IF_RADIOLIB,
+        IF_UDP_WIFI
     };
 
     // possible hardware descriptions of an interface (includes capabilities)
     struct radiolibDescription_t
     {
+        radioLibInterface::radioTypes_t radioType;
         PhysicalLayer *radio;
         float tcxoVoltage;
         bool useRegulatorLDO;
@@ -75,8 +74,17 @@ public:
         wifiConfig_t wifiConfig;
     };
 
+    union ifImpl_t
+    {
+        radioLibInterface *radioLibIfImpl;
+#ifndef EXCLUDE_INTERFACE_UDP
+        UDPInterface *UDPIfImpl;
+#endif
+    };
+
+#pragma endregion ifTypesDefinitions
     // managed interface data with its type, hardware description/capabilities and config
-    // Would use std::variant (c++17) instead of unions but gives all sorts of problems because its not as supported
+    // Would use std::variant (c++17) instead of unions but gives all sorts of problems because its not as supported in Arduino
     struct managedIf_t
     {
         String name = "";
@@ -85,14 +93,20 @@ public:
         ifConfigTypes_t ifConfigType = CONFIG_NONE;
         ifConfig_t ifConfig;
         RNS::Type::Interface::modes rnsIfMode = RNS::Type::Interface::modes::MODE_NONE;
+        // interface implementation object to configure/setup interface
+        ifImpl_t ifterfaceImpl;
+        // interface object to pass to RNS transport
+        RNS::Interface rnsInterface = RNS::Interface(RNS::Type::NONE);
+        // flag for updateInterfaces that the interface settings have changed
+        bool update = true;
     };
-#endif // true
 
 public:
     interfaceManager() {};
     interfaceManager(interfaceManager &) = delete;
-    static bool addInterface(managedIf_t newInterface) { return get().addInterfaceImpl(&newInterface); }
+    static bool addInterface(managedIf_t *newInterface) { return get().addInterfaceImpl(newInterface); }
     static String interfacesToString(bool verbose = false) { return get().interfacesToStringImpl(verbose); };
+    static bool updateTransportInterfaces() { return get().updateTransportInterfacesImpl(); };
 
 private:
     // get singleton instance
@@ -103,9 +117,10 @@ private:
     }
     bool addInterfaceImpl(managedIf_t *newInterface);
     String interfacesToStringImpl(bool verbose);
+    bool updateTransportInterfacesImpl();
 
 private:
     bool checkNewConfig(managedIf_t *newInterface);
 
-    std::vector<managedIf_t> interfaces;
+    std::vector<managedIf_t *> interfaces;
 };

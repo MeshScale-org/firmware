@@ -2,10 +2,7 @@
 
 #ifndef EXCLUDE_INTERFACE_RADIOLIB
 
-// reticulum
-#include "../src/Interface.h"
-#include "../src/Bytes.h"
-#include "../src/Type.h"
+#include "rnsInterface_base.h"
 
 // radiolib
 #include <RadioLib.h>
@@ -16,37 +13,14 @@
 
 #include <stdint.h>
 
-/*
-struct FSKConfig_t
+class radioLibInterface : public rnsInterface_base
 {
-};
-struct LoraConfig_t
-{
-	float frequency = 0;
-	float bandwidth = 0;
-	uint8_t spreading = 0;
-	uint8_t coding = 0;
-	uint8_t power = 0;
-};
-struct LRFHSSConfig_t
-{
-};
-
-union radioConfig_t
-{
-	FSKConfig_t FSKConfig;
-	LoraConfig_t LoraConfig;
-	LRFHSSConfig_t LRFHSSConfig;
-};
-
-struct radioLibInterfaceConfig
-{
-	ModemType_t modem = RADIOLIB_MODEM_NONE;
-	radioConfig_t radioConfig;
-};
-*/
-class radioLibInterface : public RNS::InterfaceImpl
-{
+public:
+	enum radioTypes_t
+	{
+		RADIO_NONE,
+		RADIO_SX1262
+	};
 
 public:
 	// p def __init__(self, owner, name, device=None, bindip=None, bindport=None, forwardip=None, forwardport=None):

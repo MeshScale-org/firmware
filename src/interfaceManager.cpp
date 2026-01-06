@@ -7,15 +7,39 @@ bool interfaceManager::checkNewConfig(managedIf_t *newInterface)
 
 bool interfaceManager::addInterfaceImpl(managedIf_t *newInterface)
 {
+    // new interface so it should be updated in rns transport
+    newInterface->update = true;
     if (checkNewConfig(newInterface))
     {
-        interfaces.push_back(*newInterface);
+        interfaces.push_back(newInterface);
         return true;
     }
     else
     {
         return false;
     }
+};
+
+bool interfaceManager::updateTransportInterfacesImpl()
+{
+
+    for (uint8_t i = 0; i < interfaces.size(); i++)
+    {
+        if (interfaces[i]->update)
+        {
+
+            // is deregister/register really needed?
+
+            // impl stop
+            // rns deregister
+            // impl change config
+            // impl start
+            // rns register
+
+            interfaces[i]->update = false;
+        }
+    }
+    return true;
 };
 
 String interfaceManager::interfacesToStringImpl(bool verbose)
@@ -30,12 +54,12 @@ String interfaceManager::interfacesToStringImpl(bool verbose)
         outString += i;
         outString += ":\n";
         outString += "Name: ";
-        outString += interfaces[i].name;
+        outString += interfaces[i]->name;
         outString += ", ";
-        switch (interfaces[i].ifDescriptionType)
+        switch (interfaces[i]->ifDescriptionType)
         {
-        case IF_SX1262:
-            outString += ("IF_SX1262\n");
+        case IF_RADIOLIB:
+            outString += ("IF_RADIOLIB\n");
             break;
         case IF_UDP_WIFI:
             outString += ("IF_UDP_WIFI\n");
@@ -49,7 +73,7 @@ String interfaceManager::interfacesToStringImpl(bool verbose)
         if (verbose)
         {
             outString += ("verbose not implemented\n");
-            switch (interfaces[i].ifConfigType)
+            switch (interfaces[i]->ifConfigType)
             {
             case CONFIG_LORA:
 

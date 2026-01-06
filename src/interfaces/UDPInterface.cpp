@@ -11,7 +11,7 @@
 using namespace RNS;
 
 // p def __init__(self, owner, name, device=None, bindip=None, bindport=None, forwardip=None, forwardport=None):
-UDPInterface::UDPInterface(const char *name /*= "UDPInterface"*/) : RNS::InterfaceImpl(name)
+UDPInterface::UDPInterface(const char *name /*= "UDPInterface"*/) : rnsInterface_base(name)
 {
 
 	_IN = true;
