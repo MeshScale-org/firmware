@@ -10,7 +10,7 @@
 
 using namespace RNS;
 
-radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, PhysicalLayer *radio) : radio(radio), rnsInterface_base(name)
+radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, PhysicalLayer *radio) : radio(radio), managedInterfaceImpl_t(name)
 {
 
 	_IN = true;

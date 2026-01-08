@@ -2,7 +2,7 @@
 
 #ifndef EXCLUDE_INTERFACE_RADIOLIB
 
-#include "rnsInterface_base.h"
+#include "managedInterfaceImpl.h"
 
 // radiolib
 #include <RadioLib.h>
@@ -13,17 +13,10 @@
 
 #include <stdint.h>
 
-class radioLibInterface : public rnsInterface_base
+class radioLibInterface : public managedInterfaceImpl_t
 {
 public:
-	enum radioTypes_t
-	{
-		RADIO_NONE,
-		RADIO_SX1262
-	};
-
 public:
-	// p def __init__(self, owner, name, device=None, bindip=None, bindport=None, forwardip=None, forwardport=None):
 	radioLibInterface(const char *name, PhysicalLayer *radio);
 	virtual ~radioLibInterface();
 

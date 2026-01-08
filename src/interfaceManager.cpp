@@ -1,45 +1,34 @@
 #include "interfaceManager.h"
 
-bool interfaceManager::checkNewConfig(managedIf_t *newInterface)
+bool interfaceManager::addInterfaceImpl(managedInterface_t *newInterface)
 {
+    newInterface->RNS_IF = RNS::Interface(newInterface->managedInterfaceImpl);
+    interfaces.push_back(newInterface);
     return true;
-};
-
-bool interfaceManager::addInterfaceImpl(managedIf_t *newInterface)
-{
-    // new interface so it should be updated in rns transport
-    newInterface->update = true;
-    if (checkNewConfig(newInterface))
-    {
-        interfaces.push_back(newInterface);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
 };
 
 bool interfaceManager::updateTransportInterfacesImpl()
 {
-
-    for (uint8_t i = 0; i < interfaces.size(); i++)
-    {
-        if (interfaces[i]->update)
+    /*
+        for (uint8_t i = 0; i < interfaces.size(); i++)
         {
+            if (interfaces[i]->update)
+            {
 
-            // is deregister/register really needed?
+                // is deregister/register really needed?
 
-            // impl stop
-            // rns deregister
-            // impl change config
-            // impl start
-            // rns register
+                // impl stop
+                // rns deregister
+                // impl change config
+                // impl start
+                // rns register
 
-            interfaces[i]->update = false;
+                interfaces[i]->update = false;
+            }
         }
-    }
-    return true;
+        return true;
+        */
+    return false;
 };
 
 String interfaceManager::interfacesToStringImpl(bool verbose)
@@ -54,15 +43,22 @@ String interfaceManager::interfacesToStringImpl(bool verbose)
         outString += i;
         outString += ":\n";
         outString += "Name: ";
-        outString += interfaces[i]->name;
-        outString += ", ";
-        switch (interfaces[i]->ifDescriptionType)
+        if (interfaces[i]->RNS_IF) // Create RNS_IF object first
         {
-        case IF_RADIOLIB:
+            outString += interfaces[i]->RNS_IF.name().c_str();
+        }
+        else
+        {
+            outString += "#####";
+        }
+        outString += ", ";
+        switch (interfaces[i]->managedInterfaceConfig.ifType)
+        {
+        case managedInterfaceImpl_t::IF_RADIOLIB:
             outString += ("IF_RADIOLIB\n");
             break;
-        case IF_UDP_WIFI:
-            outString += ("IF_UDP_WIFI\n");
+        case managedInterfaceImpl_t::IF_UDP:
+            outString += ("IF_UDP\n");
             break;
         default:
             outString += ("undefined\n");
@@ -72,18 +68,6 @@ String interfaceManager::interfacesToStringImpl(bool verbose)
         // TODO: add verbose mode that shows freq,bw,sf,... in case of loraconfig. SSID, .. in case of wifi, ...
         if (verbose)
         {
-            outString += ("verbose not implemented\n");
-            switch (interfaces[i]->ifConfigType)
-            {
-            case CONFIG_LORA:
-
-                break;
-            case CONFIG_UDP_WIFI:
-
-            default:
-                outString += ("Error: undefined ifConfigType\n");
-                break;
-            }
         }
     };
 

@@ -2,7 +2,7 @@
 
 #ifndef EXCLUDE_INTERFACE_UDP
 
-#include "rnsInterface_base.h"
+#include "managedInterfaceImpl.h"
 
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -16,7 +16,7 @@
 #define DEFAULT_UDP_LOCAL_HOST "192.168.1.14"
 #define DEFAULT_UDP_REMOTE_HOST "192.168.1.255"
 
-class UDPInterface : public rnsInterface_base
+class UDPInterface : public managedInterfaceImpl_t
 {
 
 public:

@@ -2,45 +2,44 @@
 #include "interfaceManager.h"
 #include "../../../credentials.h"
 
+#include "interfaces/radioLibInterface.h"
+#include "interfaces/UDPInterface.h"
+
 void variantSetDefaultInterfaces()
 {
     // add interfaces to interfacemanager
     // sx1262 loraInterface
-    interfaceManager::managedIf_t *loraInterface = new interfaceManager::managedIf_t;
+    interfaceManager::managedInterface_t *loraInterface = new interfaceManager::managedInterface_t;
 
-    loraInterface->name = "SX1262-loraInterface";
+    loraInterface->managedInterfaceConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radioType = managedInterfaceImpl_t::RADIO_SX1262;
+    loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY)));
 
-    loraInterface->ifDescriptionType = interfaceManager::IF_RADIOLIB;
-    loraInterface->ifDescription.radiolibDescription.radioType = radioLibInterface::RADIO_SX1262;
-    loraInterface->ifDescription.radiolibDescription.radio = new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY));
-    loraInterface->ifDescription.radiolibDescription.tcxoVoltage = 1.6;
-    loraInterface->ifDescription.radiolibDescription.useRegulatorLDO = false;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.configType = managedInterfaceImpl_t::CONFIG_LORA;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.frequency = 869.5;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.bandwidth = 125;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.spreadingFactor = 9;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.codingRate = 7;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.syncWord = 18;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.power = 10;
 
-    loraInterface->ifConfigType = interfaceManager::CONFIG_LORA;
-    loraInterface->ifConfig.loraConfig.frequency = 869.5;
-    loraInterface->ifConfig.loraConfig.bandwidth = 125;
-    loraInterface->ifConfig.loraConfig.spreadingFactor = 9;
-    loraInterface->ifConfig.loraConfig.codingRate = 7;
-    loraInterface->ifConfig.loraConfig.syncWord = 18;
-    loraInterface->ifConfig.loraConfig.power = 10;
-
-    loraInterface->rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
+    loraInterface->managedInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
     // transfer pointer ownership to interfaceManager
     interfaceManager::addInterface(loraInterface);
 
     // wifi interface
-    interfaceManager::managedIf_t *wifiInterface = new interfaceManager::managedIf_t;
+    interfaceManager::managedInterface_t *wifiInterface = new interfaceManager::managedInterface_t;
 
-    wifiInterface->name = "wifi interface";
+    wifiInterface->managedInterfaceConfig.ifType = managedInterfaceImpl_t::IF_UDP;
 
-    wifiInterface->ifDescriptionType = interfaceManager::IF_UDP_WIFI;
+    wifiInterface->managedInterfaceConfig.interfaceConfig.udpConfig.medium = managedInterfaceImpl_t::WIFI;
+    wifiInterface->managedInterfaceConfig.interfaceConfig.udpConfig.network.SSID = WIFI_SSID;
+    wifiInterface->managedInterfaceConfig.interfaceConfig.udpConfig.network.KEY = WIFI_KEY;
 
-    wifiInterface->ifConfigType = interfaceManager::CONFIG_UDP_WIFI;
-    wifiInterface->ifConfig.wifiConfig.SSID = WIFI_SSID;
-    wifiInterface->ifConfig.wifiConfig.KEY = WIFI_KEY;
+    wifiInterface->managedInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
-    wifiInterface->rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
+    wifiInterface->managedInterfaceImpl = new UDPInterface("Wifi Interface");
 
     // transfer pointer ownership to interfaceManager
     interfaceManager::addInterface(wifiInterface);

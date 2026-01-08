@@ -23,6 +23,7 @@
 #include "wiring_constants.h"
 #include "wiring_digital.h"
 #include "interfaceManager.h"
+#include "interfaces/radioLibInterface.h"
 
 const uint32_t g_ADigitalPinMap[] = {
     // P0 - pins 0 and 1 are hardwired for xtal and should never be enabled
@@ -49,26 +50,22 @@ void variantSetDefaultInterfaces()
 {
   // add interfaces to interfacemanager
 
-  interfaceManager::managedIf_t *loraInterface;
-
   // sx1262 loraInterface
-  loraInterface->name = "SX1262-loraInterface";
+  interfaceManager::managedInterface_t *loraInterface = new interfaceManager::managedInterface_t;
 
-  loraInterface->ifDescriptionType = interfaceManager::IF_RADIOLIB;
-  loraInterface->ifDescription.radiolibDescription.radioType = radioLibInterface::RADIO_SX1262;
-  loraInterface->ifDescription.radiolibDescription.radio = new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY));
-  loraInterface->ifDescription.radiolibDescription.tcxoVoltage = 1.6;
-  loraInterface->ifDescription.radiolibDescription.useRegulatorLDO = false;
+  loraInterface->managedInterfaceConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
+  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radioType = managedInterfaceImpl_t::RADIO_SX1262;
+  loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY)));
 
-  loraInterface->ifConfigType = interfaceManager::CONFIG_LORA;
-  loraInterface->ifConfig.loraConfig.frequency = 869.5;
-  loraInterface->ifConfig.loraConfig.bandwidth = 125;
-  loraInterface->ifConfig.loraConfig.spreadingFactor = 9;
-  loraInterface->ifConfig.loraConfig.codingRate = 7;
-  loraInterface->ifConfig.loraConfig.syncWord = 18;
-  loraInterface->ifConfig.loraConfig.power = 10;
+  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.configType = managedInterfaceImpl_t::CONFIG_LORA;
+  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.frequency = 869.5;
+  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.bandwidth = 125;
+  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.spreadingFactor = 9;
+  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.codingRate = 7;
+  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.syncWord = 18;
+  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radiolibModemConfig.loraConfig.power = 10;
 
-  loraInterface->rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
+  loraInterface->managedInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
   // transfer pointer to interfaceManager
   interfaceManager::addInterface(loraInterface);
