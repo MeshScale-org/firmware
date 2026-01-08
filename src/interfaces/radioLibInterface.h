@@ -16,6 +16,8 @@
 class radioLibInterface : public managedInterfaceImpl_t
 {
 public:
+	bool updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t rnsInterfaceDescription);
+
 public:
 	radioLibInterface(const char *name, PhysicalLayer *radio);
 	virtual ~radioLibInterface();

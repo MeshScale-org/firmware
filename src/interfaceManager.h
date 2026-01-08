@@ -15,6 +15,7 @@ public:
         managedInterfaceImpl_t::managedInterfaceConfig_t managedInterfaceConfig;
         managedInterfaceImpl_t *managedInterfaceImpl;
         RNS::Interface RNS_IF = RNS::Interface(RNS::Type::NONE);
+        bool update = false; // flag set to true if changes have been made to managedInterfaceConfig
     };
 
 public:

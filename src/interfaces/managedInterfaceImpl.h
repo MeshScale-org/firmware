@@ -101,5 +101,5 @@ public:
 public:
     managedInterfaceImpl_t(const char *name) : RNS::InterfaceImpl(name) {};
 
-    // virtual bool configManagedIf(rnsInterfaceDescription_t rnsInterfaceDescription) const = 0;
+    virtual bool updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t rnsInterfaceDescription) = 0;
 };

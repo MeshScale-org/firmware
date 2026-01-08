@@ -9,26 +9,37 @@ bool interfaceManager::addInterfaceImpl(managedInterface_t *newInterface)
 
 bool interfaceManager::updateTransportInterfacesImpl()
 {
-    /*
-        for (uint8_t i = 0; i < interfaces.size(); i++)
+    for (uint8_t i = 0; i < interfaces.size(); i++)
+    {
+        if (interfaces[i]->update)
         {
-            if (interfaces[i]->update)
+            /*
+            // is deregister/register really needed?
+
+            // interface stop
+            interfaces[i]->RNS_IF.stop();
+            if (interfaces[i]->managedInterfaceImpl->updateConfig(interfaces[i]->managedInterfaceConfig))
             {
-
-                // is deregister/register really needed?
-
-                // impl stop
-                // rns deregister
-                // impl change config
-                // impl start
-                // rns register
-
-                interfaces[i]->update = false;
+                Serial.printf("updating interface %s succes, Starting Interface\n", interfaces[i]->RNS_IF.name().c_str());
+                if (interfaces[i]->RNS_IF.start())
+                {
+                    Serial.printf("Interface started\n");
+                }
+                else
+                {
+                    Serial.printf("Interface failed to start\n");
+                }
             }
+            else
+            {
+                Serial.printf("updating interface %s failed, Starting Stopped\n", interfaces[i]->RNS_IF.name().c_str());
+            }*/
+
+            interfaces[i]->update = false;
         }
-        return true;
-        */
-    return false;
+    }
+
+    return true;
 };
 
 String interfaceManager::interfacesToStringImpl(bool verbose)

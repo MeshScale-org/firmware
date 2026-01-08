@@ -83,6 +83,17 @@ void radioLibInterface::loop()
 	}
 }
 
+bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t rnsInterfaceDescription)
+{
+	if (rnsInterfaceDescription.ifType == managedInterfaceImpl_t::IF_RADIOLIB)
+	{
+
+		return true;
+	}
+
+	return false;
+}
+
 /*virtual*/ void radioLibInterface::send_outgoing(const Bytes &data)
 {
 

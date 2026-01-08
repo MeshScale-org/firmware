@@ -26,6 +26,9 @@ public:
 	// z def get_broadcast_for_if(name):
 
 public:
+	bool updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t rnsInterfaceDescription);
+
+public:
 	// p def __init__(self, owner, name, device=None, bindip=None, bindport=None, forwardip=None, forwardport=None):
 	UDPInterface(const char *name = "UDPInterface");
 	virtual ~UDPInterface();

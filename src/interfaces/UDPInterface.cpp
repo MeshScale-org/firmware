@@ -10,7 +10,6 @@
 
 using namespace RNS;
 
-// p def __init__(self, owner, name, device=None, bindip=None, bindport=None, forwardip=None, forwardport=None):
 UDPInterface::UDPInterface(const char *name /*= "UDPInterface"*/) : managedInterfaceImpl_t(name)
 {
 
@@ -25,7 +24,6 @@ UDPInterface::UDPInterface(const char *name /*= "UDPInterface"*/) : managedInter
 	stop();
 }
 
-// bool UDPInterface::start(const char* wifi_ssid, const char* wifi_password, int port /*= DEFAULT_UDP_PORT*/, const char* local_host /*= nullptr*/) {
 /*virtual*/ bool UDPInterface::start()
 {
 	const char *wifi_ssid = WIFI_SSID;
@@ -232,6 +230,23 @@ UDPInterface::UDPInterface(const char *name /*= "UDPInterface"*/) : managedInter
 			}
 		}
 #endif
+	}
+}
+
+bool UDPInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t rnsInterfaceDescription)
+{
+	if (rnsInterfaceDescription.ifType == managedInterfaceImpl_t::IF_UDP)
+	{
+		_wifi_ssid = rnsInterfaceDescription.interfaceConfig.udpConfig.network.SSID;
+		_wifi_password = rnsInterfaceDescription.interfaceConfig.udpConfig.network.KEY;
+		//_local_host = rnsInterfaceDescription.interfaceConfig.udpConfig.network.ipAdress;
+		//_local_port = rnsInterfaceDescription.interfaceConfig.udpConfig.network.port;
+
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
 
