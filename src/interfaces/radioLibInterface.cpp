@@ -1,7 +1,7 @@
 
 #ifndef EXCLUDE_INTERFACE_RADIOLIB
 
-#include "radioLibInterface.h"
+#include "radiolibInterface.h"
 
 #include "../src/Log.h"
 #include "../src/Utilities/OS.h"
@@ -10,9 +10,8 @@
 
 using namespace RNS;
 
-radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, PhysicalLayer *radio) : radio(radio), managedInterfaceImpl_t(name)
+radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, radiolibInterfaceAdapter_base *radio) : radioAdapter(radio), managedInterfaceImpl_t(name)
 {
-
 	_IN = true;
 	_OUT = true;
 	// p self.bitrate = self.r_sf * ( (4.0/self.r_cr) / (math.pow(2,self.r_sf)/(self.r_bandwidth/1000)) ) * 1000
@@ -29,7 +28,7 @@ bool radioLibInterface::start()
 {
 	_online = false;
 	INFO("Start receive...");
-	Serial.printf("radio start receive with status code: %d\n", radio->startReceive());
+	Serial.printf("radio start receive with status code: %d\n", radioAdapter->startReceive());
 
 	_online = true;
 	return true;
@@ -54,28 +53,28 @@ void radioLibInterface::loop()
 			TRACE("radioLibInterface: receiving bytes...");
 
 			// read header (for detecting split packets)
-			// uint8_t header = radio->read();
+			// uint8_t header = radioAdapter->read();
 
 			// read packet
 			buffer.clear();
 
 			// TODO: Can be optimized
-			uint16_t len = radio->getPacketLength();
+			uint16_t len = radioAdapter->getPacketLength();
 			uint8_t *receivedBytes = new uint8_t[len];
 			while (receivedBytes == nullptr)
 			{
 				Serial.println("bad alloc");
 				delay(500);
 			}
-			radio->readData(receivedBytes, len);
+			radioAdapter->readData(receivedBytes, len);
 			for (uint16_t i = 0; i < len; i++)
 			{
 				buffer << receivedBytes[i];
 			}
 			delete[] receivedBytes;
 
-			Serial.println("RSSI: " + String(radio->getRSSI()));
-			Serial.println("Snr: " + String(radio->getSNR()));
+			Serial.println("RSSI: " + String(radioAdapter->getRSSI()));
+			Serial.println("Snr: " + String(radioAdapter->getSNR()));
 
 			on_incoming(buffer);
 		}
@@ -87,6 +86,17 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 {
 	if (rnsInterfaceDescription.ifType == managedInterfaceImpl_t::IF_RADIOLIB)
 	{
+		switch (rnsInterfaceDescription.interfaceConfig.radiolibConfig.modemType)
+		{
+		case CONFIG_NONE:
+			return false;
+			break;
+		case CONFIG_LORA:
+			return (radioAdapter->beginLora() == RADIOLIB_ERR_NONE);
+			break;
+		default:
+			break;
+		}
 
 		return true;
 	}
@@ -110,12 +120,12 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 			// uint8_t *header = 0;
 			//*header = (Cryptography::randomnum(256) & 0xF0);
 
-			// radio->startTransmit(header, 1);
+			// radioAdapter->startTransmit(header, 1);
 
 			// CBA TODO add support for split packets
 
 			// add payload
-			radio->startTransmit(data.data(), data.size());
+			radioAdapter->startTransmit(data.data(), data.size());
 
 #endif
 			TRACE("radioLibInterface: sent bytes");

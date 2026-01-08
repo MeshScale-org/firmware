@@ -4,7 +4,7 @@
 // includes
 #include <RadioLib.h>
 #include <Reticulum.h>
-#include "interfaces/radioLibInterface.h"
+#include "interfaces/radiolibInterface.h"
 #include "os/fileSystem.h"
 #include "interfaceManager.h"
 
@@ -123,6 +123,7 @@ void reticulum_setup()
     filesystem.init();
     RNS::Utilities::OS::register_filesystem(filesystem);
 
+    /*
     // radiolib interface
     Serial.println("Radio begin");
     int state = radio.begin(869.5, 125, 9, 7, 18, 10, 8, 1.6, false);
@@ -141,26 +142,28 @@ void reticulum_setup()
         delay(10);
       }
     }
+*/
 
-    // register radiolib interface
-    Serial.println("Registering LoRaInterface instances with Transport...");
-    radioLib_interface_impl = new radioLibInterface("SX1262Interface", &radio);
-    radioLib_interface = radioLib_interface_impl;
-    radioLib_interface.mode(RNS::Type::Interface::MODE_FULL);
-    RNS::Transport::register_interface(radioLib_interface);
+    /*
+        // register radiolib interface
+        Serial.println("Registering LoRaInterface instances with Transport...");
+        radioLib_interface_impl = new radioLibInterface("SX1262Interface", &radio);
+        radioLib_interface = radioLib_interface_impl;
+        radioLib_interface.mode(RNS::Type::Interface::MODE_FULL);
+        RNS::Transport::register_interface(radioLib_interface);
 
-// register UDP interface
-#ifndef EXCLUDE_INTERFACE_UDP
-    HEAD("Registering UDPInterface instances with Transport...", RNS::LOG_TRACE);
-    udp_interface = new UDPInterface();
-    udp_interface.mode(RNS::Type::Interface::MODE_FULL);
-    RNS::Transport::register_interface(udp_interface);
-    udp_interface.start();
-#endif
+    // register UDP interface
+    #ifndef EXCLUDE_INTERFACE_UDP
+        HEAD("Registering UDPInterface instances with Transport...", RNS::LOG_TRACE);
+        udp_interface = new UDPInterface();
+        udp_interface.mode(RNS::Type::Interface::MODE_FULL);
+        RNS::Transport::register_interface(udp_interface);
+        udp_interface.start();
+    #endif
 
-    Serial.println("Starting LoRaInterface...");
-    radioLib_interface_impl->start();
-
+        Serial.println("Starting LoRaInterface...");
+        radioLib_interface_impl->start();
+    */
     Serial.println("Creating Reticulum instance...");
     reticulum = RNS::Reticulum();
     reticulum.transport_enabled(true);
@@ -294,8 +297,11 @@ void loop()
     }
   }
 
-  reticulum.loop();
-  radioLib_interface_impl->loop();
+  /*
+  //these are nullpointers now
+    reticulum.loop();
+    radioLib_interface_impl->loop();
+  */
 
   // announce every interval time
   if (last_announce + announceInterval < millis())

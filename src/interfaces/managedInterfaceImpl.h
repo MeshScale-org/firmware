@@ -44,7 +44,7 @@ public:
     };
 
     // all radiolib modem configs
-    union radiolibModemConfig_t
+    union modemConfig_t
     {
         loraConfig_t loraConfig;
     };
@@ -53,8 +53,8 @@ public:
     struct radiolibConfig_t
     {
         radiolibRadioTypes_t radioType;
-        radiolibModems_t configType;
-        radiolibModemConfig_t radiolibModemConfig;
+        radiolibModems_t modemType;
+        modemConfig_t modemConfig;
     };
 
     // UDP: Medium
