@@ -6,7 +6,7 @@ class radiolibInterfaceAdapter_base
 {
 
 public:
-    radiolibInterfaceAdapter_base(PhysicalLayer *radio) : radio(radio) {};
+    radiolibInterfaceAdapter_base(PhysicalLayer *radio) : radio(radio) { Serial.printf("radiolibInterfaceAdapter_base with radio* = %p\n", radio); };
     // methods required for radiolibInterface.cpp, methods of radiolib PhysicalLayer
 public:
     int16_t startReceive() { return radio->startReceive(); };
@@ -18,8 +18,9 @@ public:
 
     // radio specific, should be overridden if supported by specific radio
 public:
-    virtual int16_t beginLora() { return RADIOLIB_ERR_UNSUPPORTED; }
-    virtual int16_t beginFSK() { return RADIOLIB_ERR_UNSUPPORTED; }
+    virtual int16_t beginLora(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t syncWord, int8_t power, uint16_t preambleLength) { return RADIOLIB_ERR_UNSUPPORTED; };
+
+    virtual int16_t beginFSK(float freq, float br, float freqDev, float rxBw, int8_t power, uint16_t preambleLength) { return RADIOLIB_ERR_UNSUPPORTED; };
 
 private:
     PhysicalLayer *radio;

@@ -27,42 +27,54 @@ public:
     // radiolib: Modems
     enum radiolibModems_t
     {
-        CONFIG_NONE,
-        CONFIG_LORA
+        MODEM_NONE,
+        MODEM_LORA,
+        MODEM_FSK
     };
 
     // radiolib modem: Lora
     struct loraConfig_t
     {
-        float frequency;
-        float bandwidth;
-        uint8_t spreadingFactor;
-        uint8_t codingRate;
-        uint8_t syncWord;
-        uint8_t power;
-        uint16_t preambleLength;
+        float frequency = 0;
+        float bandwidth = 0;
+        uint8_t spreadingFactor = 0;
+        uint8_t codingRate = 0;
+        uint8_t syncWord = 0;
+        int8_t power = 0; // in dbm
+        uint16_t preambleLength = 0;
+    };
+    // radiolib modem: Lora
+    struct fskConfig_t
+    {
+        float frequency = 0;
+        float bitRate = 0;
+        float frequencyDeviation = 0;
+        float rxBandwidth = 0;
+        int8_t power = 0;
+        uint16_t preambleLength = 0;
     };
 
     // all radiolib modem configs
     union modemConfig_t
     {
         loraConfig_t loraConfig;
+        fskConfig_t fskConfig;
     };
 
     // radiolib all
     struct radiolibConfig_t
     {
-        radiolibRadioTypes_t radioType;
-        radiolibModems_t modemType;
-        modemConfig_t modemConfig;
+        radiolibRadioTypes_t radioType = RADIO_NONE;
+        radiolibModems_t modemType = MODEM_NONE;
+        modemConfig_t modemConfig = {}; // init something (all 0)
     };
 
     // UDP: Medium
     enum udpMediums_t
     {
-        NONE,
-        ETH,
-        WIFI
+        MEDIUM_NONE,
+        MEDIUM_ETH,
+        MEDIUM_WIFI
     };
 
     // UDP: Network
@@ -70,14 +82,14 @@ public:
     {
         const char *SSID;
         const char *KEY;
-        uint16_t port;     // TODO
-        uint16_t ipAdress; // TODO
+        uint16_t port = 0;     // TODO
+        uint16_t ipAdress = 0; // TODO
     };
 
     // UDP all
     struct udpConfig_t
     {
-        udpMediums_t medium;
+        udpMediums_t medium = MEDIUM_NONE;
         udpNetwork_t network;
     };
 
@@ -93,8 +105,7 @@ public:
     struct managedInterfaceConfig_t
     {
         ifType_t ifType = IF_NONE;
-        interfaceConfig_t interfaceConfig;
-
+        interfaceConfig_t interfaceConfig = {}; // init something
         RNS::Type::Interface::modes rnsIfMode = RNS::Type::Interface::modes::MODE_NONE;
     };
 

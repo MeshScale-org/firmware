@@ -82,26 +82,49 @@ void radioLibInterface::loop()
 	}
 }
 
-bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t rnsInterfaceDescription)
+bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t newConfig)
 {
-	if (rnsInterfaceDescription.ifType == managedInterfaceImpl_t::IF_RADIOLIB)
+	if (newConfig.ifType == managedInterfaceImpl_t::IF_RADIOLIB)
 	{
-		switch (rnsInterfaceDescription.interfaceConfig.radiolibConfig.modemType)
+		// to shorten member acces a bit
+		auto &mdmCfg = newConfig.interfaceConfig.radiolibConfig.modemConfig;
+		switch (newConfig.interfaceConfig.radiolibConfig.modemType)
 		{
-		case CONFIG_NONE:
+
+		case MODEM_NONE:
+			Serial.println("radioLibInterface::updateConfig: ERROR: MODEM_NONE");
 			return false;
 			break;
-		case CONFIG_LORA:
-			return (radioAdapter->beginLora() == RADIOLIB_ERR_NONE);
+		case MODEM_LORA:
+			Serial.println("config says lora");
+			if (radioAdapter == nullptr)
+			{
+				Serial.println("radioLibInterface::updateConfig: radioAdapter is nullptr");
+			}
+			return (radioAdapter && radioAdapter->beginLora(mdmCfg.loraConfig.frequency, mdmCfg.loraConfig.bandwidth,
+															mdmCfg.loraConfig.spreadingFactor, mdmCfg.loraConfig.codingRate, mdmCfg.loraConfig.syncWord,
+															mdmCfg.loraConfig.power, mdmCfg.loraConfig.preambleLength) == RADIOLIB_ERR_NONE);
+			break;
+		case MODEM_FSK:
+			if (radioAdapter == nullptr)
+			{
+				Serial.println("radioLibInterface::updateConfig: radioAdapter is nullptr");
+			}
+			return (radioAdapter && radioAdapter->beginFSK(mdmCfg.fskConfig.frequency, mdmCfg.fskConfig.bitRate,
+														   mdmCfg.fskConfig.frequencyDeviation, mdmCfg.fskConfig.rxBandwidth, mdmCfg.fskConfig.power,
+														   mdmCfg.fskConfig.preambleLength) == RADIOLIB_ERR_NONE);
 			break;
 		default:
+			Serial.println("radioLibInterface::updateConfig: ERROR: modem not supported");
+			return false;
 			break;
 		}
-
-		return true;
 	}
-
-	return false;
+	else
+	{
+		Serial.println("radioLibInterface::updateConfig was given a new config that is not meant for radiolibInterface");
+		return false;
+	}
 }
 
 /*virtual*/ void radioLibInterface::send_outgoing(const Bytes &data)

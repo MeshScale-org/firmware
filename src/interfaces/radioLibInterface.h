@@ -31,7 +31,7 @@ public:
 	volatile bool receiveDone = 0;
 
 public:
-	bool updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t rnsInterfaceDescription);
+	bool updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t newConfig);
 
 private:
 	virtual void send_outgoing(const RNS::Bytes &data);

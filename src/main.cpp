@@ -245,8 +245,6 @@ void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
-  variantSetDefaultInterfaces();
-  delay(5000);
 
 #ifdef ESP32
   SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
@@ -254,18 +252,50 @@ void setup()
   SPI.begin();
 #endif
 
-  Serial.print("Hello from device\n");
+  variantSetDefaultInterfaces();
   delay(5000);
+
+  Serial.print("Hello from device\n");
+  Serial.print("Registering interfaces....\n");
+  interfaceManager::registerIfsTransport();
+  Serial.print("Registering done\n");
+
   // set the function that will be called
   // when new packet is received
   radio.setDio1Action(setIrqFlag);
 
   reticulum_setup();
+
+  // print out interface setup by variant
+  delay(100);
+  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(true).c_str());
+  delay(500); // give print some time
+
+  Serial.println("doing announce on lora");
+  reticulum_announce();
+  delay(10000);
+  managedInterfaceImpl_t::managedInterfaceConfig_t newConfig;
+  newConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
+  newConfig.interfaceConfig.radiolibConfig.modemType = managedInterfaceImpl_t::MODEM_FSK;
+  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.frequency = 869.5;
+  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.bitRate = 4.8;
+  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.frequencyDeviation = 5;
+  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.rxBandwidth = 156.2;
+  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.power = 5; // low power during testing
+  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.preambleLength = 16;
+  interfaceManager::configureInterface(0, newConfig);
+
+  // print out interface setup by variant
+  delay(100);
+  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(true).c_str());
+  delay(500); // give print some time
+  Serial.println("doing announce on fsk");
+  reticulum_announce();
   // reduce printouts after setup
   // RNS::loglevel(RNS::LOG_WARNING);
-  delay(100);
-  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString().c_str());
-  delay(500); // give print some time
+
+  Serial.println("end of setup()");
+  delay(200);
 }
 
 unsigned long lastAnnounce = millis();
@@ -281,27 +311,26 @@ void loop()
 
     if (irqStatus & RADIOLIB_SX126X_IRQ_TX_DONE)
     {
-      radio.finishTransmit();
-      radioLib_interface_impl->sendDone = 1;
+      // radio.finishTransmit();
+      // radioLib_interface_impl->sendDone = 1;
+
       Serial.println("###################################  Sending done!   ###################################");
       // go back to receiving mode
-      radio.startReceive();
+      // radio.startReceive();
     }
 
     if (irqStatus & RADIOLIB_SX126X_IRQ_RX_DONE)
     {
-      radio.finishReceive();
-      radioLib_interface_impl->receiveDone = 1;
+      // radio.finishReceive();
+      // radioLib_interface_impl->receiveDone = 1;
       Serial.println("###################################  receving done!   ###################################");
-      radio.startReceive();
+      // radio.startReceive();
     }
   }
 
-  /*
-  //these are nullpointers now
-    reticulum.loop();
-    radioLib_interface_impl->loop();
-  */
+  // these are nullpointers now
+  reticulum.loop();
+  interfaceManager::loop();
 
   // announce every interval time
   if (last_announce + announceInterval < millis())

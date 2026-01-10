@@ -15,15 +15,17 @@ public:
         managedInterfaceImpl_t::managedInterfaceConfig_t managedInterfaceConfig;
         managedInterfaceImpl_t *managedInterfaceImpl;
         RNS::Interface RNS_IF = RNS::Interface(RNS::Type::NONE);
-        bool update = false; // flag set to true if changes have been made to managedInterfaceConfig
     };
 
+    // singleton interfaces
 public:
     interfaceManager() {};
     interfaceManager(interfaceManager &) = delete;
     static bool addInterface(managedInterface_t *newInterface) { return get().addInterfaceImpl(newInterface); }
+    static bool configureInterface(uint8_t interfaceIndex, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig) { return get().configureInterfaceImpl(interfaceIndex, newConfig); };
     static String interfacesToString(bool verbose = false) { return get().interfacesToStringImpl(verbose); };
-    static bool updateTransportInterfaces() { return get().updateTransportInterfacesImpl(); };
+    static bool registerIfsTransport() { return get().registerIfsTransportImpl(); };
+    static void loop() { return get().loopImpl(); };
 
 private:
     // get singleton instance
@@ -32,9 +34,12 @@ private:
         static interfaceManager instance;
         return instance;
     }
+
     bool addInterfaceImpl(managedInterface_t *newInterface);
+    bool configureInterfaceImpl(uint8_t interfaceIndex, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig);
     String interfacesToStringImpl(bool verbose);
-    bool updateTransportInterfacesImpl();
+    bool registerIfsTransportImpl();
+    void loopImpl();
 
 private:
     std::vector<managedInterface_t *> interfaces;
