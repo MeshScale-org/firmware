@@ -84,12 +84,6 @@ fileSystem *filesystem_impl = nullptr;
 // RNS::HAnnounceHandler announce_handler(new ExampleAnnounceHandler("example_utilities.announcesample.fruits"));
 RNS::HAnnounceHandler announce_handler(new ExampleAnnounceHandler());
 
-volatile bool irqFlag = 0;
-void setIrqFlag()
-{
-  irqFlag = 1;
-}
-
 void toggleLed()
 {
   static bool ledState = 0;
@@ -123,47 +117,6 @@ void reticulum_setup()
     filesystem.init();
     RNS::Utilities::OS::register_filesystem(filesystem);
 
-    /*
-    // radiolib interface
-    Serial.println("Radio begin");
-    int state = radio.begin(869.5, 125, 9, 7, 18, 10, 8, 1.6, false);
-
-    if (state == RADIOLIB_ERR_NONE)
-    {
-      Serial.println(F("success!"));
-      delay(2000);
-    }
-    else
-    {
-      Serial.print(F("failed, code "));
-      Serial.println(state);
-      while (true)
-      {
-        delay(10);
-      }
-    }
-*/
-
-    /*
-        // register radiolib interface
-        Serial.println("Registering LoRaInterface instances with Transport...");
-        radioLib_interface_impl = new radioLibInterface("SX1262Interface", &radio);
-        radioLib_interface = radioLib_interface_impl;
-        radioLib_interface.mode(RNS::Type::Interface::MODE_FULL);
-        RNS::Transport::register_interface(radioLib_interface);
-
-    // register UDP interface
-    #ifndef EXCLUDE_INTERFACE_UDP
-        HEAD("Registering UDPInterface instances with Transport...", RNS::LOG_TRACE);
-        udp_interface = new UDPInterface();
-        udp_interface.mode(RNS::Type::Interface::MODE_FULL);
-        RNS::Transport::register_interface(udp_interface);
-        udp_interface.start();
-    #endif
-
-        Serial.println("Starting LoRaInterface...");
-        radioLib_interface_impl->start();
-    */
     Serial.println("Creating Reticulum instance...");
     reticulum = RNS::Reticulum();
     reticulum.transport_enabled(true);
@@ -173,11 +126,16 @@ void reticulum_setup()
 
     identity = RNS::Identity(false);
     RNS::Bytes prv_bytes;
+
+    // static keys for testing
+    // should be created/loaded from memory
+
 #ifdef ESP32
     prv_bytes.assignHex("78E7D93E28D55871608FF13329A226CABC3903A357388A035B360162FF6321570B092E0583772AB80BC425F99791DF5CA2CA0A985FF0415DAB419BBC64DDFAE8");
 #else
     prv_bytes.assignHex("E0D43398EDC974EBA9F4A83463691A08F4D306D4E56BA6B275B8690A2FBD9852E9EBE7C03BC45CAEC9EF8E78C830037210BFB9986F6CA2DEE2B5C28D7B4DE6B0");
 #endif
+
     identity.load_private_key(prv_bytes);
 
     Serial.println("Creating Destination instance...");
@@ -260,10 +218,6 @@ void setup()
   interfaceManager::registerIfsTransport();
   Serial.print("Registering done\n");
 
-  // set the function that will be called
-  // when new packet is received
-  radio.setDio1Action(setIrqFlag);
-
   reticulum_setup();
 
   // print out interface setup by variant
@@ -293,6 +247,7 @@ void setup()
   reticulum_announce();
   // reduce printouts after setup
   // RNS::loglevel(RNS::LOG_WARNING);
+  RNS::loglevel(RNS::LOG_TRACE);
 
   Serial.println("end of setup()");
   delay(200);
@@ -303,32 +258,6 @@ const unsigned long announceInterval = 30000;
 void loop()
 {
 
-  if (irqFlag)
-  {
-    irqFlag = false;
-
-    uint32_t irqStatus = radio.getIrqFlags();
-
-    if (irqStatus & RADIOLIB_SX126X_IRQ_TX_DONE)
-    {
-      // radio.finishTransmit();
-      // radioLib_interface_impl->sendDone = 1;
-
-      Serial.println("###################################  Sending done!   ###################################");
-      // go back to receiving mode
-      // radio.startReceive();
-    }
-
-    if (irqStatus & RADIOLIB_SX126X_IRQ_RX_DONE)
-    {
-      // radio.finishReceive();
-      // radioLib_interface_impl->receiveDone = 1;
-      Serial.println("###################################  receving done!   ###################################");
-      // radio.startReceive();
-    }
-  }
-
-  // these are nullpointers now
   reticulum.loop();
   interfaceManager::loop();
 

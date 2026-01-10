@@ -28,7 +28,7 @@ void variantSetDefaultInterfaces()
 
     // TODO: replace by factory using managedInterfaceConfig.interfaceConfig.radiolibConfig.radioType (RADIO_SX1262)
     // loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY)));
-    loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", new SX1262Adapter(new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY))));
+    loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", SX126X_DIO1, new SX1262Adapter(new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY))));
 
     // transfer pointer ownership to interfaceManager
     interfaceManager::addInterface(loraInterface);
@@ -47,7 +47,6 @@ void variantSetDefaultInterfaces()
 
     wifiInterface->managedInterfaceImpl = new UDPInterface("Wifi Interface");
 
-    // transfer pointer ownership to interfaceManager
-    // turned off to declutter serial monitor
-    // interfaceManager::addInterface(wifiInterface);
+    interfaceManager::addInterface(wifiInterface);
+    wifiInterface->RNS_IF.start(); // should be moved to addInterface
 }

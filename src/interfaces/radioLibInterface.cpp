@@ -10,13 +10,14 @@
 
 using namespace RNS;
 
-radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, radiolibInterfaceAdapter_base *radio) : radioAdapter(radio), managedInterfaceImpl_t(name)
+radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, uint32_t irqPin, radiolibInterfaceAdapter_base *radio) : managedInterfaceImpl_t(name), radioAdapter(radio)
 {
 	_IN = true;
 	_OUT = true;
 	// p self.bitrate = self.r_sf * ( (4.0/self.r_cr) / (math.pow(2,self.r_sf)/(self.r_bandwidth/1000)) ) * 1000
 	_bitrate = 100; //(double)spreading * ((4.0 / coding) / (pow(2, spreading) / (bandwidth / 1000.0))) * 1000.0;
 	_HW_MTU = 200;
+	this->irqPin = irqPin;
 }
 
 /*virtual*/ radioLibInterface::~radioLibInterface()
@@ -44,41 +45,51 @@ void radioLibInterface::loop()
 
 	if (_online)
 	{
-
-		// Check for incoming packet
-#ifdef ARDUINO
-		if (receiveDone)
+		if (irqPin && digitalRead(irqPin))
 		{
-			receiveDone = 0;
-			TRACE("radioLibInterface: receiving bytes...");
-
-			// read header (for detecting split packets)
-			// uint8_t header = radioAdapter->read();
-
-			// read packet
-			buffer.clear();
-
-			// TODO: Can be optimized
-			uint16_t len = radioAdapter->getPacketLength();
-			uint8_t *receivedBytes = new uint8_t[len];
-			while (receivedBytes == nullptr)
+			// Check for incoming packet
+#ifdef ARDUINO
+			if (radioAdapter->receiveDone())
 			{
-				Serial.println("bad alloc");
-				delay(500);
+				receiveDone = 0;
+				TRACE("radioLibInterface: receiving bytes...");
+
+				// read header (for detecting split packets)
+				// uint8_t header = radioAdapter->read();
+
+				// read packet
+				buffer.clear();
+
+				// TODO: Can be optimized
+				uint16_t len = radioAdapter->getPacketLength();
+				uint8_t *receivedBytes = new uint8_t[len];
+				while (receivedBytes == nullptr)
+				{
+					Serial.println("bad alloc");
+					delay(500);
+				}
+				radioAdapter->readData(receivedBytes, len);
+				for (uint16_t i = 0; i < len; i++)
+				{
+					buffer << receivedBytes[i];
+				}
+				delete[] receivedBytes;
+
+				Serial.println("RSSI: " + String(radioAdapter->getRSSI()));
+				Serial.println("Snr: " + String(radioAdapter->getSNR()));
+
+				on_incoming(buffer);
+				Serial.println("###################################  Receving done!   ###################################");
+				radioAdapter->startReceive();
 			}
-			radioAdapter->readData(receivedBytes, len);
-			for (uint16_t i = 0; i < len; i++)
+			if (radioAdapter->transmitDone())
 			{
-				buffer << receivedBytes[i];
+				radioAdapter->finishTransmit();
+				Serial.println("###################################  Sending done!   ###################################");
+				radioAdapter->startReceive();
 			}
-			delete[] receivedBytes;
-
-			Serial.println("RSSI: " + String(radioAdapter->getRSSI()));
-			Serial.println("Snr: " + String(radioAdapter->getSNR()));
-
-			on_incoming(buffer);
-		}
 #endif
+		}
 	}
 }
 

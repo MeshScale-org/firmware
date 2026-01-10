@@ -20,7 +20,7 @@ class radioLibInterface : public managedInterfaceImpl_t
 {
 
 public:
-	radioLibInterface(const char *name, radiolibInterfaceAdapter_base *radio);
+	radioLibInterface(const char *name, uint32_t irqPin, radiolibInterfaceAdapter_base *radio);
 	virtual ~radioLibInterface();
 
 	virtual bool start();
@@ -40,6 +40,9 @@ private:
 private:
 	RNS::Bytes buffer;
 	radiolibInterfaceAdapter_base *radioAdapter;
+	// would take irqPin from radiolib module but its protected/private
+	// uint16_t irqPin = radioAdapter->getRadio()->getMod()->getIrq();
+	uint32_t irqPin;
 };
 
 #endif
