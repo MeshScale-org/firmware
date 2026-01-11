@@ -18,11 +18,12 @@ void variantSetDefaultInterfaces()
 
     loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemType = managedInterfaceImpl_t::MODEM_LORA;
     loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.frequency = 869.5;
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.bandwidth = 250;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.bandwidth = 125;
     loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.spreadingFactor = 9;
     loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.codingRate = 7;
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.syncWord = 18;
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.syncWord = 0x42;
     loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.power = 5; // low power during testing
+    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.preambleLength = 16;
 
     loraInterface->managedInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 

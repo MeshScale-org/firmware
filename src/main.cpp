@@ -228,6 +228,7 @@ void setup()
   Serial.println("doing announce on lora");
   reticulum_announce();
   delay(10000);
+  /*
   managedInterfaceImpl_t::managedInterfaceConfig_t newConfig;
   newConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
   newConfig.interfaceConfig.radiolibConfig.modemType = managedInterfaceImpl_t::MODEM_FSK;
@@ -237,8 +238,8 @@ void setup()
   newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.rxBandwidth = 156.2;
   newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.power = 5; // low power during testing
   newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.preambleLength = 16;
-  interfaceManager::configureInterface(0, newConfig);
-
+   interfaceManager::configureInterface(0, newConfig);
+*/
   // print out interface setup by variant
   delay(100);
   Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(true).c_str());
