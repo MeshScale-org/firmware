@@ -54,7 +54,6 @@ UDPInterface::UDPInterface(const char *name /*= "UDPInterface"*/) : managedInter
 
 #ifdef ARDUINO
 	TRACE("UDPInterface: wifi ssid: " + _wifi_ssid);
-	// TRACE("UDPInterface: wifi password: " + _wifi_password);
 
 	// Connect to the WiFi network
 	WiFi.begin(_wifi_ssid.c_str(), _wifi_password.c_str());

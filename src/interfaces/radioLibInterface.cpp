@@ -107,7 +107,6 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 			return false;
 			break;
 		case MODEM_LORA:
-			Serial.println("config says lora");
 			if (radioAdapter == nullptr)
 			{
 				Serial.println("radioLibInterface::updateConfig: radioAdapter is nullptr");

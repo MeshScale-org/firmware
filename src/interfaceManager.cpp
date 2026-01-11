@@ -1,35 +1,48 @@
 #include "interfaceManager.h"
 
-bool interfaceManager::addInterfaceImpl(managedInterface_t *newInterface)
+bool interfaceManager::addInterfaceImpl(uint8_t ifID, managedInterface_t *newInterface, bool autoStart /*=true*/)
 {
-    newInterface->RNS_IF = RNS::Interface(newInterface->managedInterfaceImpl);
-    interfaces.push_back(newInterface);
+    newInterface->transportIf = RNS::Interface(newInterface->managedInterfaceImpl);
+    // interfaces.push_back(newInterface);
+    interfaces.insert({ifID, newInterface});
     // start radio with initial config
-    // newInterface->managedInterfaceImpl->updateConfig(newInterface->managedInterfaceConfig);
+    newInterface->managedInterfaceImpl->updateConfig(newInterface->managedInterfaceConfig);
+    if (autoStart)
+    {
+        newInterface->transportIf.start();
+    }
     return true;
 };
 
-bool interfaceManager::configureInterfaceImpl(uint8_t interfaceIndex, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig)
+bool interfaceManager::configureInterfaceImpl(uint8_t ifID, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig)
 {
-    interfaces[interfaceIndex]->RNS_IF.stop();
-    if (interfaces[interfaceIndex]->managedInterfaceImpl->updateConfig(newConfig))
+    if (interfaces.find(ifID) != interfaces.end())
     {
-        Serial.printf("updating interface %s succes, Starting Interface\n", interfaces[interfaceIndex]->RNS_IF.name().c_str());
-        if (interfaces[interfaceIndex]->RNS_IF.start())
+        interfaces[ifID]->transportIf.stop();
+        if (interfaces[ifID]->managedInterfaceImpl->updateConfig(newConfig))
         {
-            Serial.printf("Interface started\n");
-            interfaces[interfaceIndex]->managedInterfaceConfig = newConfig;
-            return true;
+            Serial.printf("updating interface %s succes, Starting Interface\n", interfaces[ifID]->transportIf.name().c_str());
+            if (interfaces[ifID]->transportIf.start())
+            {
+                Serial.printf("Interface started\n");
+                interfaces[ifID]->managedInterfaceConfig = newConfig;
+                return true;
+            }
+            else
+            {
+                Serial.printf("Interface failed to start\n");
+                return false;
+            }
         }
         else
         {
-            Serial.printf("Interface failed to start\n");
+            Serial.printf("updating interface %s failed, interface Stopped\n", interfaces[ifID]->transportIf.name().c_str());
             return false;
         }
     }
     else
     {
-        Serial.printf("updating interface %s failed, interface Stopped\n", interfaces[interfaceIndex]->RNS_IF.name().c_str());
+        Serial.printf("interfaceManager::configureInterfaceImpl: ERROR: Interface with id: %d does not exist, interface config not changed\n", ifID);
         return false;
     }
 };
@@ -37,15 +50,13 @@ bool interfaceManager::configureInterfaceImpl(uint8_t interfaceIndex, managedInt
 bool interfaceManager::registerIfsTransportImpl()
 {
     bool ret = false;
-    for (uint8_t i = 0; i < interfaces.size(); i++)
+    for (auto it = interfaces.begin(); it != interfaces.end(); ++it)
     {
-        // std::map<Bytes, Interface&>&registeredInterfaces
-        auto &registeredInterfaces = RNS::Transport::get_interfaces();
-        if (RNS::Transport::find_interface_from_hash(interfaces[i]->RNS_IF.get_hash()).get() == nullptr)
+        if (RNS::Transport::find_interface_from_hash(it->second->transportIf.get_hash()).get() == nullptr)
         {
             ret = true;
-            Serial.printf("Registering interface %s to transport\n", interfaces[i]->RNS_IF.name().c_str());
-            RNS::Transport::register_interface(interfaces[i]->RNS_IF);
+            Serial.printf("Registering interface %s to transport\n", it->second->transportIf.name().c_str());
+            RNS::Transport::register_interface(it->second->transportIf);
         }
     }
 
@@ -54,11 +65,11 @@ bool interfaceManager::registerIfsTransportImpl()
 
 void interfaceManager::loopImpl()
 {
-    for (uint8_t i = 0; i < interfaces.size(); i++)
+    for (auto it = interfaces.begin(); it != interfaces.end(); ++it)
     {
-        if (interfaces[i] && interfaces[i]->managedInterfaceImpl)
+        if (it->second && it->second->managedInterfaceImpl)
         {
-            interfaces[i]->RNS_IF.loop();
+            it->second->transportIf.loop();
             return;
         }
         Serial.printf("interfaceManager::loopImpl: ERROR: nullptr error\n");
@@ -71,22 +82,23 @@ String interfaceManager::interfacesToStringImpl(bool verbose)
     outString += "Number of Interfaces: ";
     outString += interfaces.size();
     outString += "\n\n";
-    for (uint8_t i = 0; i < interfaces.size(); i++)
+
+    for (auto it = interfaces.begin(); it != interfaces.end(); ++it)
     {
-        // always display name and ifDescriptionType
-        outString += i;
+        outString += "ifID " + String(it->first);
         outString += ":\n";
         outString += "Name: ";
-        if (interfaces[i]->RNS_IF) // Create RNS_IF object first
+        if (it->second->transportIf) // Create transportIf object first
         {
-            outString += interfaces[i]->RNS_IF.name().c_str();
+            outString += it->second->transportIf.name().c_str();
         }
         else
         {
             outString += "#####";
         }
-        outString += ", ";
-        switch (interfaces[i]->managedInterfaceConfig.ifType)
+        outString += ", Type: ";
+
+        switch (it->second->managedInterfaceConfig.ifType)
         {
         case managedInterfaceImpl_t::IF_RADIOLIB:
             outString += ("IF_RADIOLIB\n");
@@ -99,36 +111,37 @@ String interfaceManager::interfacesToStringImpl(bool verbose)
             break;
         }
 
-        // TODO: add verbose mode that shows freq,bw,sf,... in case of loraconfig. SSID, .. in case of wifi, ...
+        // TODO: show more in verbose mode
         if (verbose)
         {
-            switch (interfaces[i]->managedInterfaceConfig.ifType)
+            switch (it->second->managedInterfaceConfig.ifType)
             {
             case managedInterfaceImpl_t::IF_RADIOLIB:
 
-                switch (interfaces[i]->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemType)
+                switch (it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemType)
                 {
                 case managedInterfaceImpl_t::MODEM_LORA:
                     outString += "Modem: Lora\n";
-                    outString += "\tFrequency: " + String(interfaces[i]->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.frequency, 3) + "\n";
+                    outString += "\tFrequency: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.frequency, 3) + "\n";
                     break;
                 case managedInterfaceImpl_t::MODEM_FSK:
                     outString += "Modem: FSK\n";
-                    outString += "\tFrequency: " + String(interfaces[i]->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.frequency, 3) + "\n";
+                    outString += "\tFrequency: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.frequency, 3) + "\n";
                     break;
                 default:
                     break;
                 }
                 break;
             case managedInterfaceImpl_t::IF_UDP:
-                outString += "SSID: " + String(interfaces[i]->managedInterfaceConfig.interfaceConfig.udpConfig.network.SSID) + "\n";
+                outString += "SSID: " + String(it->second->managedInterfaceConfig.interfaceConfig.udpConfig.network.SSID) + "\n";
                 break;
             default:
                 outString += ("undefined\n");
                 break;
             }
         }
-    };
+        outString += "\n";
+    }
 
     return outString;
 };

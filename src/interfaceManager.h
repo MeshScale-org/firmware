@@ -14,14 +14,14 @@ public:
     {
         managedInterfaceImpl_t::managedInterfaceConfig_t managedInterfaceConfig;
         managedInterfaceImpl_t *managedInterfaceImpl;
-        RNS::Interface RNS_IF = RNS::Interface(RNS::Type::NONE);
+        RNS::Interface transportIf = RNS::Interface(RNS::Type::NONE);
     };
 
     // singleton interfaces
 public:
     interfaceManager() {};
     interfaceManager(interfaceManager &) = delete;
-    static bool addInterface(managedInterface_t *newInterface) { return get().addInterfaceImpl(newInterface); }
+    static bool addInterface(uint8_t ifID, managedInterface_t *newInterface, bool autoStart = true) { return get().addInterfaceImpl(ifID, newInterface, autoStart); }
     static bool configureInterface(uint8_t interfaceIndex, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig) { return get().configureInterfaceImpl(interfaceIndex, newConfig); };
     static String interfacesToString(bool verbose = false) { return get().interfacesToStringImpl(verbose); };
     static bool registerIfsTransport() { return get().registerIfsTransportImpl(); };
@@ -35,12 +35,13 @@ private:
         return instance;
     }
 
-    bool addInterfaceImpl(managedInterface_t *newInterface);
+    bool addInterfaceImpl(uint8_t ifID, managedInterface_t *newInterface, bool autoStart /*=true*/);
     bool configureInterfaceImpl(uint8_t interfaceIndex, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig);
     String interfacesToStringImpl(bool verbose);
     bool registerIfsTransportImpl();
     void loopImpl();
 
 private:
-    std::vector<managedInterface_t *> interfaces;
+    //  map for interface ID, interface value pairs
+    std::map<uint8_t, managedInterface_t *> interfaces;
 };

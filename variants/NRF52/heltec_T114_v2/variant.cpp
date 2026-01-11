@@ -73,6 +73,5 @@ void variantSetDefaultInterfaces()
   loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", SX126X_DIO1, new SX1262Adapter(new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY))));
 
   // transfer pointer to interfaceManager
-  interfaceManager::addInterface(loraInterface);
-  interfaceManager::configureInterface(0, loraInterface->managedInterfaceConfig); // TODO: this indexed acces must be replaced
+  interfaceManager::addInterface(0, loraInterface);
 }

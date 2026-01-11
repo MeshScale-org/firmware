@@ -222,7 +222,7 @@ void setup()
 
   // print out interface setup by variant
   delay(100);
-  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(true).c_str());
+  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(false).c_str());
   delay(500); // give print some time
 
   Serial.println("doing announce on lora");
