@@ -60,7 +60,7 @@ void radioLibInterface::loop()
 				// read packet
 				buffer.clear();
 
-				// TODO: Can be optimized
+				// TODO: Can be optimized?
 				uint16_t len = radioAdapter->getPacketLength();
 				uint8_t *receivedBytes = new uint8_t[len];
 				while (receivedBytes == nullptr)

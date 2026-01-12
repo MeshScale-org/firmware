@@ -111,7 +111,6 @@ String interfaceManager::interfacesToStringImpl(bool verbose)
             break;
         }
 
-        // TODO: show more in verbose mode
         if (verbose)
         {
             switch (it->second->managedInterfaceConfig.ifType)
@@ -123,10 +122,21 @@ String interfaceManager::interfacesToStringImpl(bool verbose)
                 case managedInterfaceImpl_t::MODEM_LORA:
                     outString += "Modem: Lora\n";
                     outString += "\tFrequency: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.frequency, 3) + "\n";
+                    outString += "\tBandwidth: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.bandwidth, 3) + "\n";
+                    outString += "\tSpreadingFactor: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.spreadingFactor, 3) + "\n";
+                    outString += "\tCodingRate: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.codingRate, 3) + "\n";
+                    outString += "\tSyncWord: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.syncWord, 3) + "\n";
+                    outString += "\tPower: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.power, 3) + "\n";
+                    outString += "\tPreambleLength: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.preambleLength, 3) + "\n";
                     break;
                 case managedInterfaceImpl_t::MODEM_FSK:
                     outString += "Modem: FSK\n";
                     outString += "\tFrequency: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.frequency, 3) + "\n";
+                    outString += "\tBitRate: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.bitRate, 3) + "\n";
+                    outString += "\tFrequencyDeviation: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.frequencyDeviation, 3) + "\n";
+                    outString += "\tRxBandwidth: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.rxBandwidth, 3) + "\n";
+                    outString += "\tPower: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.power, 3) + "\n";
+                    outString += "\tPreambleLength: " + String(it->second->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.preambleLength, 3) + "\n";
                     break;
                 default:
                     break;
