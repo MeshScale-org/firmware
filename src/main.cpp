@@ -12,9 +12,6 @@
 #include "interfaces/UDPInterface.h"
 #endif
 
-// SX1262
-SX1262 radio = new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY);
-
 // save transmission states between loops
 int transmissionState = RADIOLIB_ERR_NONE;
 
@@ -25,6 +22,8 @@ const char *noble_gases[] = {"Helium", "Neon", "Argon", "Krypton", "Xenon", "Rad
 double last_announce = 0.0;
 bool send_announce = false;
 
+RNS::Destination externDestination = RNS::Destination(RNS::Type::NONE);
+
 // Test AnnounceHandler
 class ExampleAnnounceHandler : public RNS::AnnounceHandler
 {
@@ -33,6 +32,8 @@ public:
   virtual ~ExampleAnnounceHandler() {}
   virtual void received_announce(const RNS::Bytes &destination_hash, const RNS::Identity &announced_identity, const RNS::Bytes &app_data)
   {
+    Serial.println("Setting external destination.....");
+    externDestination = RNS::Destination(announced_identity, RNS::Type::Destination::IN, RNS::Type::Destination::SINGLE, destination_hash);
     Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     Serial.printf("ExampleAnnounceHandler: destination hash: %d\n", destination_hash.toHex());
     if (announced_identity)
@@ -54,8 +55,12 @@ void onPacket(const RNS::Bytes &data, const RNS::Packet &packet)
   Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   Serial.printf("onPacket: data: %d\n", data.toHex());
   Serial.printf("onPacket: text: %s\n", data.toString());
-  // TRACE("onPacket: " + packet.debugString());
+  TRACE("onPacket: " + packet.debugString());
   Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  RNS::Packet newPack(packet);
+  newPack.unpack();
+
+  TRACE("Test recv_packet: " + newPack.debugString());
 }
 
 // Ping packet receive callback
@@ -64,7 +69,7 @@ void onPingPacket(const RNS::Bytes &data, const RNS::Packet &packet)
   Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   Serial.printf("onPingPacket: data: %d\n", data.toHex());
   Serial.printf("onPingPacket: text: %s\n", data.toString());
-  // TRACE("onPingPacket: " + packet.debugString());
+  TRACE("onPingPacket: " + packet.debugString());
   Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 }
 
@@ -101,6 +106,23 @@ void reticulum_announce()
     // destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]), true, nullptr, RNS::bytesFromString("test_tag"));
     //  test packet send
     destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]));
+  }
+}
+
+void send_packet()
+{
+  if (externDestination)
+  {
+    Serial.println("Creating send packet...");
+    RNS::Packet send_packet(externDestination, "msgContent123456");
+
+    Serial.println("Sending send packet...");
+    send_packet.pack();
+    send_packet.send();
+  }
+  else
+  {
+    Serial.println("Not sending package because no destination in known");
   }
 }
 
@@ -225,27 +247,8 @@ void setup()
   Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(false).c_str());
   delay(500); // give print some time
 
-  Serial.println("doing announce on lora");
   reticulum_announce();
-  delay(10000);
-  /*
-  managedInterfaceImpl_t::managedInterfaceConfig_t newConfig;
-  newConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
-  newConfig.interfaceConfig.radiolibConfig.modemType = managedInterfaceImpl_t::MODEM_FSK;
-  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.frequency = 869.5;
-  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.bitRate = 4.8;
-  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.frequencyDeviation = 5;
-  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.rxBandwidth = 156.2;
-  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.power = 5; // low power during testing
-  newConfig.interfaceConfig.radiolibConfig.modemConfig.fskConfig.preambleLength = 16;
-   interfaceManager::configureInterface(0, newConfig);
-*/
-  // print out interface setup by variant
-  delay(100);
-  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(true).c_str());
-  delay(500); // give print some time
-  Serial.println("doing announce on fsk");
-  reticulum_announce();
+
   // reduce printouts after setup
   // RNS::loglevel(RNS::LOG_WARNING);
   RNS::loglevel(RNS::LOG_TRACE);
@@ -256,6 +259,9 @@ void setup()
 
 unsigned long lastAnnounce = millis();
 const unsigned long announceInterval = 30000;
+
+unsigned long lastMessage = millis();
+const unsigned long messageInterval = 10000;
 void loop()
 {
 
@@ -265,9 +271,16 @@ void loop()
   // announce every interval time
   if (last_announce + announceInterval < millis())
   {
-    toggleLed();
     last_announce = millis();
     // reticulum_announce();
+  }
+
+  // message every interval time
+  if (lastMessage + messageInterval < millis())
+  {
+    toggleLed();
+    lastMessage = millis();
+    send_packet();
   }
 
   delay(50);
