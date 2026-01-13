@@ -32,7 +32,7 @@ void variantSetDefaultInterfaces()
     loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", SX126X_DIO1, new SX1262Adapter(new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY))));
 
     // interface ID, interface pair
-    interfaceManager::addInterface(0, loraInterface);
+    // interfaceManager::addInterface(0, loraInterface);
 
     // wifi interface
     interfaceManager::managedInterface_t *wifiInterface = new interfaceManager::managedInterface_t;

@@ -5,22 +5,13 @@
 #include <FileStream.h>
 #include <Bytes.h>
 
-#ifdef ARDUINO
 #ifdef MCU_ESP32
-// #include <FS.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
+#define fsImpl LittleFS
 #elif MCU_NRF52
-// #include <Adafruit_LittleFS.h>
 #include <InternalFileSystem.h>
+#define fsImpl InternalFS
 using namespace Adafruit_LittleFS_Namespace;
-#endif
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 #endif
 
 class fileSystem : public RNS::FileSystemImpl

@@ -5,13 +5,12 @@
 #include <Utilities/OS.h>
 #include <Log.h>
 
-#ifdef ARDUINO
 void fileSystem::listDir(const char *dir)
 {
 	Serial.print("DIR: ");
 	Serial.println(dir);
 #ifdef MCU_ESP32
-	File root = SPIFFS.open(dir);
+	File root = fsImpl.open(dir);
 	if (!root)
 	{
 		Serial.println("Failed to opend directory");
@@ -58,30 +57,24 @@ void fileSystem::listDir(const char *dir)
 	root.close();
 #endif
 }
-#else
-void fileSystem::listDir(const char *dir)
-{
-}
-#endif
 
 /*virtual*/ bool fileSystem::init()
 {
 	TRACE("fileSystem initializing...");
 
-#ifdef ARDUINO
 #ifdef MCU_ESP32
 	// Setup FileSystem
-	INFO("SPIFFS mounting FileSystem");
-	if (!SPIFFS.begin(true, ""))
+	INFO("fsImpl mounting FileSystem");
+	if (!fsImpl.begin(true, ""))
 	{
-		ERROR("SPIFFS FileSystem mount failed");
+		ERROR("fsImpl FileSystem mount failed");
 		return false;
 	}
-	uint32_t size = SPIFFS.totalBytes() / (1024 * 1024);
+	uint32_t size = fsImpl.totalBytes() / (1024 * 1024);
 	Serial.print("size: ");
 	Serial.print(size);
 	Serial.println(" MB");
-	uint32_t used = SPIFFS.usedBytes() / (1024 * 1024);
+	uint32_t used = fsImpl.usedBytes() / (1024 * 1024);
 	Serial.print("used: ");
 	Serial.print(used);
 	Serial.println(" MB");
@@ -89,29 +82,27 @@ void fileSystem::listDir(const char *dir)
 	RNS::Bytes test("test");
 	if (write_file("/test", test) < 4)
 	{
-		INFO("SPIFFS FileSystem is being formatted, please wait...");
-		SPIFFS.format();
+		INFO("fsImpl FileSystem is being formatted, please wait...");
+		fsImpl.format();
 	}
 	else
 	{
 		remove_file("/test");
 	}
-	DEBUG("SPIFFS FileSystem is ready");
+	DEBUG("fsImpl FileSystem is ready");
 #elif MCU_NRF52
 	// Initialize Internal File System
 	INFO("InternalFS mounting FileSystem");
 	InternalFS.begin();
 	INFO("InternalFS FileSystem is ready");
 #endif
-#endif
 	return true;
 }
 
 /*virtual*/ bool fileSystem::file_exists(const char *file_path)
 {
-#ifdef ARDUINO
 #ifdef MCU_ESP32
-	File file = SPIFFS.open(file_path, FILE_READ);
+	File file = fsImpl.open(file_path, FILE_READ);
 	if (file)
 	{
 #elif MCU_NRF52
@@ -122,23 +113,15 @@ void fileSystem::listDir(const char *dir)
 	if (false)
 	{
 #endif
-#else
-	// Native
-	FILE *file = fopen(file_path, "r");
-	if (file != nullptr)
-	{
-#endif
+
 		// TRACE("file_exists: file exists, closing file");
-#ifdef ARDUINO
+
 #ifdef MCU_ESP32
 		file.close();
 #elif MCU_NRF52
 		file.close();
 #endif
-#else
-		// Native
-		fclose(file);
-#endif
+
 		return true;
 	}
 	else
@@ -151,9 +134,9 @@ void fileSystem::listDir(const char *dir)
 /*virtual*/ size_t fileSystem::read_file(const char *file_path, RNS::Bytes &data)
 {
 	size_t read = 0;
-#ifdef ARDUINO
+
 #ifdef MCU_ESP32
-	File file = SPIFFS.open(file_path, FILE_READ);
+	File file = fsImpl.open(file_path, FILE_READ);
 	if (file)
 	{
 		size_t size = file.size();
@@ -171,17 +154,7 @@ void fileSystem::listDir(const char *dir)
 	{
 		size_t size = 0;
 #endif
-#else
-	// Native
-	FILE *file = fopen(file_path, "r");
-	if (file != nullptr)
-	{
-		fseek(file, 0, SEEK_END);
-		size_t size = ftell(file);
-		rewind(file);
-		// size_t read = fread(data.writable(size), size, 1, file);
-		read = fread(data.writable(size), 1, size, file);
-#endif
+
 		TRACE("read_file: read " + std::to_string(read) + " bytes from file " + std::string(file_path));
 		if (read != size)
 		{
@@ -189,15 +162,11 @@ void fileSystem::listDir(const char *dir)
 			data.clear();
 		}
 		// TRACE("read_file: closing input file");
-#ifdef ARDUINO
+
 #ifdef MCU_ESP32
 		file.close();
 #elif MCU_NRF52
 		file.close();
-#endif
-#else
-		// Native
-		fclose(file);
 #endif
 	}
 	else
@@ -212,9 +181,9 @@ void fileSystem::listDir(const char *dir)
 	// CBA TODO Replace remove with working truncation
 	remove_file(file_path);
 	size_t wrote = 0;
-#ifdef ARDUINO
+
 #ifdef MCU_ESP32
-	File file = SPIFFS.open(file_path, FILE_WRITE);
+	File file = fsImpl.open(file_path, FILE_WRITE);
 	if (file)
 	{
 		wrote = file.write(data.data(), data.size());
@@ -227,29 +196,18 @@ void fileSystem::listDir(const char *dir)
 	if (false)
 	{
 #endif
-#else
-	// Native
-	FILE *file = fopen(file_path, "w");
-	if (file != nullptr)
-	{
-		// size_t wrote = fwrite(data.data(), data.size(), 1, file);
-		wrote = fwrite(data.data(), 1, data.size(), file);
-#endif
+
 		TRACE("write_file: wrote " + std::to_string(wrote) + " bytes to file " + std::string(file_path));
 		if (wrote < data.size())
 		{
 			WARNING("write_file: not all data was written to file " + std::string(file_path));
 		}
 		// TRACE("write_file: closing output file");
-#ifdef ARDUINO
+
 #ifdef MCU_ESP32
 		file.close();
 #elif MCU_NRF52
 		file.close();
-#endif
-#else
-		// Native
-		fclose(file);
 #endif
 	}
 	else
@@ -262,7 +220,7 @@ void fileSystem::listDir(const char *dir)
 /*virtual*/ RNS::FileStream fileSystem::open_file(const char *file_path, RNS::FileStream::MODE file_mode)
 {
 	TRACEF("open_file: opening file %s", file_path);
-#ifdef ARDUINO
+
 #ifdef MCU_ESP32
 	const char *mode;
 	if (file_mode == RNS::FileStream::MODE_READ)
@@ -284,9 +242,9 @@ void fileSystem::listDir(const char *dir)
 	}
 	TRACEF("open_file: opening file %s in mode %s", file_path, mode);
 	//// Using copy constructor to create a File* instead of local
-	// File file = SPIFFS.open(file_path, mode);
+	// File file = fsImpl.open(file_path, mode);
 	// if (!file) {
-	File *file = new File(SPIFFS.open(file_path, mode));
+	File *file = new File(fsImpl.open(file_path, mode));
 	if (file == nullptr || !(*file))
 	{
 		ERRORF("open_file: failed to open output file %s", file_path);
@@ -338,76 +296,36 @@ void fileSystem::listDir(const char *dir)
 #warning ("unsuppoprted");
 	return RNS::FileStream(RNS::Type::NONE);
 #endif
-#else // ARDUINO
-	// Native
-	const char *mode;
-	if (file_mode == RNS::FileStream::MODE_READ)
-	{
-		mode = "r";
-	}
-	else if (file_mode == RNS::FileStream::MODE_WRITE)
-	{
-		mode = "w";
-	}
-	else if (file_mode == RNS::FileStream::MODE_APPEND)
-	{
-		mode = "a";
-	}
-	else
-	{
-		ERRORF("open_file: unsupported mode %d", file_mode);
-		return {RNS::Type::NONE};
-	}
-	TRACEF("open_file: opening file %s in mode %s", file_path, mode);
-	FILE *file = fopen(file_path, mode);
-	if (file == nullptr)
-	{
-		ERRORF("open_file: failed to open output file %s", file_path);
-		return {RNS::Type::NONE};
-	}
-	TRACEF("open_file: successfully opened file %s", file_path);
-	return RNS::FileStream(new UniversalFileStream(file));
-#endif
 }
 
 /*virtual*/ bool fileSystem::remove_file(const char *file_path)
 {
-#ifdef ARDUINO
 #ifdef MCU_ESP32
-	return SPIFFS.remove(file_path);
+	return fsImpl.remove(file_path);
 #elif MCU_NRF52
 	return InternalFS.remove(file_path);
 #else
 	return false;
 #endif
-#else
-	// Native
-	return (remove(file_path) == 0);
-#endif
 }
 
 /*virtual*/ bool fileSystem::rename_file(const char *from_file_path, const char *to_file_path)
 {
-#ifdef ARDUINO
 #ifdef MCU_ESP32
-	return SPIFFS.rename(from_file_path, to_file_path);
+	return fsImpl.rename(from_file_path, to_file_path);
 #elif MCU_NRF52
 	return InternalFS.rename(from_file_path, to_file_path);
 #else
 	return false;
-#endif
-#else
-	// Native
-	return (rename(from_file_path, to_file_path) == 0);
 #endif
 }
 
 /*virtua*/ bool fileSystem::directory_exists(const char *directory_path)
 {
 	TRACE("directory_exists: checking for existence of directory " + std::string(directory_path));
-#ifdef ARDUINO
+
 #ifdef MCU_ESP32
-	File file = SPIFFS.open(directory_path, FILE_READ);
+	File file = fsImpl.open(directory_path, FILE_READ);
 	if (file)
 	{
 		bool is_directory = file.isDirectory();
@@ -432,17 +350,12 @@ void fileSystem::listDir(const char *dir)
 	{
 		return false;
 	}
-#else
-	// Native
-	return false;
-#endif
 }
 
 /*virtual*/ bool fileSystem::create_directory(const char *directory_path)
 {
-#ifdef ARDUINO
 #ifdef MCU_ESP32
-	if (!SPIFFS.mkdir(directory_path))
+	if (!fsImpl.mkdir(directory_path))
 	{
 		ERROR("create_directory: failed to create directorty " + std::string(directory_path));
 		return false;
@@ -458,24 +371,15 @@ void fileSystem::listDir(const char *dir)
 #else
 	return false;
 #endif
-#else
-	// Native
-	struct stat st = {0};
-	if (stat(directory_path, &st) == 0)
-	{
-		return true;
-	}
-	return (mkdir(directory_path, 0700) == 0);
-#endif
 }
 
 /*virtua*/ bool fileSystem::remove_directory(const char *directory_path)
 {
 	TRACE("remove_directory: removing directory " + std::string(directory_path));
-#ifdef ARDUINO
+
 #ifdef MCU_ESP32
 	// if (!LittleFS.rmdir_r(directory_path)) {
-	if (!SPIFFS.rmdir(directory_path))
+	if (!fsImpl.rmdir(directory_path))
 	{
 		ERROR("remove_directory: failed to remove directorty " + std::string(directory_path));
 		return false;
@@ -491,19 +395,15 @@ void fileSystem::listDir(const char *dir)
 #else
 	return false;
 #endif
-#else
-	// Native
-	return false;
-#endif
 }
 
 /*virtua*/ std::list<std::string> fileSystem::list_directory(const char *directory_path)
 {
 	TRACE("list_directory: listing directory " + std::string(directory_path));
 	std::list<std::string> files;
-#ifdef ARDUINO
+
 #ifdef MCU_ESP32
-	File root = SPIFFS.open(directory_path);
+	File root = fsImpl.open(directory_path);
 #elif MCU_NRF52
 	File root = InternalFS.open(directory_path);
 #endif
@@ -527,27 +427,9 @@ void fileSystem::listDir(const char *dir)
 	TRACE("list_directory: returning directory listing");
 	root.close();
 	return files;
-#else
-	// Native
-	return files;
-#endif
 }
 
-#ifdef ARDUINO
-
-#ifdef MCU_ESP32
-
-/*virtual*/ size_t fileSystem::storage_size()
-{
-	return SPIFFS.totalBytes();
-}
-
-/*virtual*/ size_t fileSystem::storage_available()
-{
-	return (SPIFFS.totalBytes() - SPIFFS.usedBytes());
-}
-
-#elif MCU_NRF52
+#ifdef MCU_NRF52
 
 static int _countLfsBlock(void *p, lfs_block_t block)
 {
@@ -575,33 +457,24 @@ static int usedBytes()
 	const int usedBlockCount = getUsedBlockCount();
 	return config->block_size * usedBlockCount;
 }
+#endif
 
 /*virtual*/ size_t fileSystem::storage_size()
 {
-	// return totalBytes();
-	// return InternalFS.totalBytes();
-	return 200;
+
+#ifdef MCU_NRF52
+	return totalBytes();
+#elif MCU_ESP32
+	return fsImpl.totalBytes();
+#endif
 }
 
 /*virtual*/ size_t fileSystem::storage_available()
 {
-	// return (totalBytes() - usedBytes());
-	// return (InternalFS.totalBytes() - InternalFS.usedBytes());
-	return 50;
-}
 
+#ifdef MCU_NRF52
+	return totalBytes() - usedBytes();
+#elif MCU_ESP32
+	return (fsImpl.totalBytes() - fsImpl.usedBytes());
 #endif
-
-#else
-
-/*virtual*/ size_t fileSystem::storage_size()
-{
-	return 0;
 }
-
-/*virtual*/ size_t fileSystem::storage_available()
-{
-	return 0;
-}
-
-#endif

@@ -1,7 +1,6 @@
 #include "Arduino.h"
 #include "variant.h"
 
-// includes
 #include <RadioLib.h>
 #include <Reticulum.h>
 #include "interfaces/radiolibInterface.h"
