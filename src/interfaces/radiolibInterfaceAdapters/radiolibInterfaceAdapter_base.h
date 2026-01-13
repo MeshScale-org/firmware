@@ -6,7 +6,7 @@ class radiolibInterfaceAdapter_base
 {
 
 public:
-    radiolibInterfaceAdapter_base(PhysicalLayer *radio) : radio(radio) { Serial.printf("radiolibInterfaceAdapter_base with radio* = %p\n", radio); };
+    radiolibInterfaceAdapter_base(PhysicalLayer *radio) : radio(radio) {};
     // methods required for radiolibInterface.cpp, methods of radiolib PhysicalLayer
 public:
     int16_t startReceive() { return radio->startReceive(); };

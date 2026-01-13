@@ -9,7 +9,6 @@ void fileSystem::listDir(const char *dir)
 {
 	Serial.print("DIR: ");
 	Serial.println(dir);
-#ifdef MCU_ESP32
 	File root = fsImpl.open(dir);
 	if (!root)
 	{
@@ -32,30 +31,6 @@ void fileSystem::listDir(const char *dir)
 		file = root.openNextFile();
 	}
 	root.close();
-#elif MCU_NRF52
-	File root = InternalFS.open(dir);
-	if (!root)
-	{
-		Serial.println("Failed to opend directory");
-		return;
-	}
-	File file = root.openNextFile();
-	while (file)
-	{
-		if (file.isDirectory())
-		{
-			Serial.print("  DIR: ");
-		}
-		else
-		{
-			Serial.print("  FILE: ");
-		}
-		Serial.println(file.name());
-		file.close();
-		file = root.openNextFile();
-	}
-	root.close();
-#endif
 }
 
 /*virtual*/ bool fileSystem::init()
@@ -64,20 +39,36 @@ void fileSystem::listDir(const char *dir)
 
 #ifdef MCU_ESP32
 	// Setup FileSystem
-	INFO("fsImpl mounting FileSystem");
+	INFO("fsImpl (ESP32) mounting FileSystem");
 	if (!fsImpl.begin(true, ""))
 	{
-		ERROR("fsImpl FileSystem mount failed");
+		ERROR("fsImpl (ESP32) FileSystem mount failed");
 		return false;
 	}
-	uint32_t size = fsImpl.totalBytes() / (1024 * 1024);
-	Serial.print("size: ");
-	Serial.print(size);
-	Serial.println(" MB");
-	uint32_t used = fsImpl.usedBytes() / (1024 * 1024);
-	Serial.print("used: ");
-	Serial.print(used);
-	Serial.println(" MB");
+	INFO("fsImpl (ESP32) FileSystem is ready");
+	uint32_t flashSize = spi_flash_get_chip_size();
+	INFOF("Total flash size: %d KB", flashSize / 1024);
+	uint32_t ram_size = ESP.getHeapSize();
+	INFOF("Total RAM size: %d KB", ram_size / 1024);
+#elif MCU_NRF52
+	// Initialize Internal File System
+	INFO("fsImpl (NRF52) mounting FileSystem");
+	if (!fsImpl.begin())
+	{
+		ERROR("fsImpl (NRF) FileSystem mount failed");
+		return false;
+	}
+	INFO("fsImpl (NRF52) FileSystem is ready");
+	uint32_t flashSize = NRF_FICR->CODEPAGESIZE * NRF_FICR->CODESIZE;
+	INFOF("Total flash size: %d KB", flashSize / 1024);
+	uint32_t ram_size = NRF_FICR->INFO.RAM; // already in KB
+	INFOF("Total RAM size: %d KB", ram_size);
+#endif
+
+	uint32_t size = storage_size() / (1024);
+	INFOF("Filesystem size: %d KB", size);
+	uint32_t used = storage_used() / (1024);
+	INFOF("Filesystem used: %d KB", used);
 	// ensure FileSystem is writable and format if not
 	RNS::Bytes test("test");
 	if (write_file("/test", test) < 4)
@@ -89,13 +80,7 @@ void fileSystem::listDir(const char *dir)
 	{
 		remove_file("/test");
 	}
-	DEBUG("fsImpl FileSystem is ready");
-#elif MCU_NRF52
-	// Initialize Internal File System
-	INFO("InternalFS mounting FileSystem");
-	InternalFS.begin();
-	INFO("InternalFS FileSystem is ready");
-#endif
+
 	return true;
 }
 
@@ -106,7 +91,7 @@ void fileSystem::listDir(const char *dir)
 	if (file)
 	{
 #elif MCU_NRF52
-	File file(InternalFS);
+	File file(fsImpl);
 	if (file.open(file_path, FILE_O_READ))
 	{
 #else
@@ -116,11 +101,7 @@ void fileSystem::listDir(const char *dir)
 
 		// TRACE("file_exists: file exists, closing file");
 
-#ifdef MCU_ESP32
 		file.close();
-#elif MCU_NRF52
-		file.close();
-#endif
 
 		return true;
 	}
@@ -142,9 +123,9 @@ void fileSystem::listDir(const char *dir)
 		size_t size = file.size();
 		read = file.readBytes((char *)data.writable(size), size);
 #elif MCU_NRF52
-	// File file(InternalFS);
+	// File file(fsImpl);
 	// if (file.open(file_path, FILE_O_READ)) {
-	File file = InternalFS.open(file_path, FILE_O_READ);
+	File file = fsImpl.open(file_path, FILE_O_READ);
 	if (file)
 	{
 		size_t size = file.size();
@@ -163,11 +144,7 @@ void fileSystem::listDir(const char *dir)
 		}
 		// TRACE("read_file: closing input file");
 
-#ifdef MCU_ESP32
 		file.close();
-#elif MCU_NRF52
-		file.close();
-#endif
 	}
 	else
 	{
@@ -188,7 +165,7 @@ void fileSystem::listDir(const char *dir)
 	{
 		wrote = file.write(data.data(), data.size());
 #elif MCU_NRF52
-	File file(InternalFS);
+	File file(fsImpl);
 	if (file.open(file_path, FILE_O_WRITE))
 	{
 		wrote = file.write(data.data(), data.size());
@@ -204,11 +181,7 @@ void fileSystem::listDir(const char *dir)
 		}
 		// TRACE("write_file: closing output file");
 
-#ifdef MCU_ESP32
 		file.close();
-#elif MCU_NRF52
-		file.close();
-#endif
 	}
 	else
 	{
@@ -253,8 +226,8 @@ void fileSystem::listDir(const char *dir)
 	TRACEF("open_file: successfully opened file %s", file_path);
 	return RNS::FileStream(new UniversalFileStream(file));
 #elif MCU_NRF52
-	// File file = File(InternalFS);
-	File *file = new File(InternalFS);
+	// File file = File(fsImpl);
+	File *file = new File(fsImpl);
 	int mode;
 	if (file_mode == RNS::FileStream::MODE_READ)
 	{
@@ -264,9 +237,9 @@ void fileSystem::listDir(const char *dir)
 	{
 		mode = FILE_O_WRITE;
 		// CBA TODO Replace remove with working truncation
-		if (InternalFS.exists(file_path))
+		if (fsImpl.exists(file_path))
 		{
-			InternalFS.remove(file_path);
+			fsImpl.remove(file_path);
 		}
 	}
 	else if (file_mode == RNS::FileStream::MODE_APPEND)
@@ -300,10 +273,8 @@ void fileSystem::listDir(const char *dir)
 
 /*virtual*/ bool fileSystem::remove_file(const char *file_path)
 {
-#ifdef MCU_ESP32
+#if defined(MCU_ESP32) || defined(MCU_NRF52)
 	return fsImpl.remove(file_path);
-#elif MCU_NRF52
-	return InternalFS.remove(file_path);
 #else
 	return false;
 #endif
@@ -311,10 +282,8 @@ void fileSystem::listDir(const char *dir)
 
 /*virtual*/ bool fileSystem::rename_file(const char *from_file_path, const char *to_file_path)
 {
-#ifdef MCU_ESP32
+#if defined(MCU_ESP32) || defined(MCU_NRF52)
 	return fsImpl.rename(from_file_path, to_file_path);
-#elif MCU_NRF52
-	return InternalFS.rename(from_file_path, to_file_path);
 #else
 	return false;
 #endif
@@ -333,36 +302,21 @@ void fileSystem::listDir(const char *dir)
 		return is_directory;
 	}
 #elif MCU_NRF52
-	File file(InternalFS);
+	File file(fsImpl);
 	if (file.open(directory_path, FILE_O_READ))
 	{
 		bool is_directory = file.isDirectory();
 		file.close();
 		return is_directory;
 	}
-#else
-	if (false)
-	{
-		return false;
-	}
 #endif
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 /*virtual*/ bool fileSystem::create_directory(const char *directory_path)
 {
-#ifdef MCU_ESP32
+#if defined(MCU_ESP32) || defined(MCU_NRF52)
 	if (!fsImpl.mkdir(directory_path))
-	{
-		ERROR("create_directory: failed to create directorty " + std::string(directory_path));
-		return false;
-	}
-	return true;
-#elif MCU_NRF52
-	if (!InternalFS.mkdir(directory_path))
 	{
 		ERROR("create_directory: failed to create directorty " + std::string(directory_path));
 		return false;
@@ -378,7 +332,6 @@ void fileSystem::listDir(const char *dir)
 	TRACE("remove_directory: removing directory " + std::string(directory_path));
 
 #ifdef MCU_ESP32
-	// if (!LittleFS.rmdir_r(directory_path)) {
 	if (!fsImpl.rmdir(directory_path))
 	{
 		ERROR("remove_directory: failed to remove directorty " + std::string(directory_path));
@@ -386,7 +339,7 @@ void fileSystem::listDir(const char *dir)
 	}
 	return true;
 #elif MCU_NRF52
-	if (!InternalFS.rmdir_r(directory_path))
+	if (!fsImpl.rmdir_r(directory_path))
 	{
 		ERROR("remove_directory: failed to remove directory " + std::string(directory_path));
 		return false;
@@ -402,10 +355,8 @@ void fileSystem::listDir(const char *dir)
 	TRACE("list_directory: listing directory " + std::string(directory_path));
 	std::list<std::string> files;
 
-#ifdef MCU_ESP32
+#if defined(MCU_ESP32) || defined(MCU_NRF52)
 	File root = fsImpl.open(directory_path);
-#elif MCU_NRF52
-	File root = InternalFS.open(directory_path);
 #endif
 	if (!root)
 	{
@@ -441,19 +392,19 @@ static int _countLfsBlock(void *p, lfs_block_t block)
 static lfs_ssize_t getUsedBlockCount()
 {
 	lfs_size_t size = 0;
-	lfs_traverse(InternalFS._getFS(), _countLfsBlock, &size);
+	lfs_traverse(fsImpl._getFS(), _countLfsBlock, &size);
 	return size;
 }
 
 static int totalBytes()
 {
-	const lfs_config *config = InternalFS._getFS()->cfg;
+	const lfs_config *config = fsImpl._getFS()->cfg;
 	return config->block_size * config->block_count;
 }
 
 static int usedBytes()
 {
-	const lfs_config *config = InternalFS._getFS()->cfg;
+	const lfs_config *config = fsImpl._getFS()->cfg;
 	const int usedBlockCount = getUsedBlockCount();
 	return config->block_size * usedBlockCount;
 }
@@ -466,6 +417,15 @@ static int usedBytes()
 	return totalBytes();
 #elif MCU_ESP32
 	return fsImpl.totalBytes();
+#endif
+}
+
+/*virtual*/ size_t fileSystem::storage_used()
+{
+#ifdef MCU_NRF52
+	return usedBytes();
+#elif MCU_ESP32
+	return fsImpl.usedBytes();
 #endif
 }
 
