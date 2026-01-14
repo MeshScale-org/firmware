@@ -1,25 +1,13 @@
-#include "Arduino.h"
+#include "main.h"
 #include "variant.h"
 
 #include <RadioLib.h>
-#include <Reticulum.h>
-#include "interfaces/radiolibInterface.h"
 #include "os/fileSystem.h"
-#include "interfaceManager.h"
-
-#ifndef EXCLUDE_INTERFACE_UDP
-#include "interfaces/UDPInterface.h"
-#endif
-
-// save transmission states between loops
-int transmissionState = RADIOLIB_ERR_NONE;
+#include "os/concurrency/scheduler.h"
 
 // We initialise two lists of strings to use as app_data
 const char *fruits[] = {"Peach", "Quince", "Date", "Tangerine", "Pomelo", "Carambola", "Grape"};
 const char *noble_gases[] = {"Helium", "Neon", "Argon", "Krypton", "Xenon", "Radon", "Oganesson"};
-
-double last_announce = 0.0;
-bool send_announce = false;
 
 RNS::Destination externDestination = RNS::Destination(RNS::Type::NONE);
 
@@ -73,15 +61,10 @@ void onPingPacket(const RNS::Bytes &data, const RNS::Packet &packet)
 }
 
 RNS::Reticulum reticulum({RNS::Type::NONE});
-RNS::Interface radioLib_interface(RNS::Type::NONE);
-#ifndef EXCLUDE_INTERFACE_UDP
-RNS::Interface udp_interface(RNS::Type::NONE);
-#endif
 RNS::FileSystem filesystem(RNS::Type::NONE);
 RNS::Identity identity({RNS::Type::NONE});
 RNS::Destination destination({RNS::Type::NONE});
 
-radioLibInterface *radioLib_interface_impl = nullptr;
 fileSystem *filesystem_impl = nullptr;
 
 // ExampleAnnounceHandler announce_handler((const char*)"example_utilities.announcesample.fruits");
@@ -180,16 +163,6 @@ void reticulum_setup()
     Serial.println("Registering announce handler with Transport...");
     RNS::Transport::register_announce_handler(announce_handler);
 
-    /*
-        Serial.println("Announcing destination...");
-        //destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]));
-        // test path
-        //destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]), true, nullptr, RNS::bytesFromString("test_tag"));
-        // test packet send
-        destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]));
-        // 23.9% (+0.8%)
-    */
-
 #if defined(RETICULUM_PACKET_TEST)
     // test data send packet
     Serial.println("Creating send packet...");
@@ -222,30 +195,36 @@ void reticulum_setup()
 
 void setup()
 {
+  // start serial for debugging
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
 
+  // start SPI
 #ifdef ESP32
   SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
 #else
   SPI.begin();
 #endif
 
+  // setup default interfaces
   variantSetDefaultInterfaces();
   delay(5000);
 
+  // register known interface with reticulum transport
   Serial.print("Hello from device\n");
   Serial.print("Registering interfaces....\n");
   interfaceManager::registerIfsTransport();
   Serial.print("Registering done\n");
 
+  // setup reticulum
   reticulum_setup();
 
-  // print out interface setup by variant
+  // print out interfaces setup by variant
   delay(100);
   Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(false).c_str());
   delay(500); // give print some time
 
+  // do initial announce
   reticulum_announce();
 
   // reduce printouts after setup
@@ -254,33 +233,25 @@ void setup()
 
   Serial.println("end of setup()");
   delay(200);
+
+  // create and register threads
+  scheduler::registerTask(new threadReticulum());
+  scheduler::registerTask(new threadAnnounce());
+  scheduler::registerTask(new threadPacket());
+
+#ifdef USE_RTOS
+  // delete the setup/loop task and let scheduler run actual tasks
+  vTaskDelete(NULL);
+#endif
 }
 
-unsigned long lastAnnounce = millis();
-const unsigned long announceInterval = 30000;
-
-unsigned long lastMessage = millis();
-const unsigned long messageInterval = 10000;
 void loop()
 {
-
-  reticulum.loop();
-  interfaceManager::loop();
-
-  // announce every interval time
-  if (last_announce + announceInterval < millis())
-  {
-    last_announce = millis();
-    // reticulum_announce();
-  }
-
-  // message every interval time
-  if (lastMessage + messageInterval < millis())
-  {
-    toggleLed();
-    lastMessage = millis();
-    send_packet();
-  }
-
-  delay(50);
+#ifdef USE_RTOS
+  Serial.println("ERROR: RTOS enabled but loop() is running anyways");
+  delay(500);
+#else
+  // use cooperative scheduler
+  scheduler::runCoOp();
+#endif
 }
