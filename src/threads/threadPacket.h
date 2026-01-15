@@ -5,6 +5,8 @@
 
 class threadPacket : public thread
 {
+public:
+    threadPacket(const char *name) : thread(name) {};
 
 private:
     void runOnce();

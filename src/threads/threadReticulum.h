@@ -4,6 +4,9 @@
 
 class threadReticulum : public thread
 {
+public:
+    threadReticulum(const char *name) : thread(name) {};
+
 private:
     void runOnce();
 

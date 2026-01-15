@@ -3,7 +3,7 @@
 #include "Arduino.h"
 #include <Reticulum.h>
 #include "interfaceManager.h"
-#include <SPI.h>
+#include "os/concurrency/SPIClassL.h"
 
 // include threads
 #include "threads/threadReticulum.h"
@@ -15,8 +15,6 @@ extern RNS::Reticulum reticulum;
 extern RNS::FileSystem filesystem;
 extern RNS::Identity identity;
 extern RNS::Destination destination;
-
-extern SPIClass SPI;
 
 // global functions
 void reticulum_announce();

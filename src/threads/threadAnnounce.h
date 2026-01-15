@@ -5,6 +5,8 @@
 
 class threadAnnounce : public thread
 {
+public:
+    threadAnnounce(const char *name) : thread(name) {};
 
 private:
     void runOnce();

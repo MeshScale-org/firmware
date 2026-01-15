@@ -1,15 +1,19 @@
 #pragma once
+#include "Arduino.h"
 
 class resourceLock
 {
+#if USE_RTOS
 public:
-    bool take();
-    void release();
+    resourceLock() { mutex = xSemaphoreCreateMutex(); }
+#endif
+
+public:
+    void lock();
+    void unlock();
 
 private:
 #if USE_RTOS
-// lock object here
-#else // should not be needed but for good practice
-    bool lockActive = false;
+    SemaphoreHandle_t mutex;
 #endif
 };

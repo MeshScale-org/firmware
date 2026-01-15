@@ -10,9 +10,7 @@
 // radiolib
 #include <RadioLib.h>
 
-#ifdef ARDUINO
-#include <SPI.h>
-#endif
+#include "os/concurrency/SPIClassL.h"
 
 #include <stdint.h>
 
@@ -20,7 +18,7 @@ class radioLibInterface : public managedInterfaceImpl_t
 {
 
 public:
-	radioLibInterface(const char *name, uint32_t irqPin, radiolibInterfaceAdapter_base *radio);
+	radioLibInterface(const char *name, uint32_t irqPin, resourceLock &radioSpiL, radiolibInterfaceAdapter_base *radio);
 	virtual ~radioLibInterface();
 
 	virtual bool start();
@@ -43,6 +41,7 @@ private:
 	// would take irqPin from radiolib module but its protected/private
 	// uint16_t irqPin = radioAdapter->getRadio()->getMod()->getIrq();
 	uint32_t irqPin;
+	resourceLock &radioSpiL;
 };
 
 #endif

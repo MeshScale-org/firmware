@@ -7,10 +7,11 @@
 #include "../src/Utilities/OS.h"
 
 #include <memory>
+#include <mutex>
 
 using namespace RNS;
 
-radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, uint32_t irqPin, radiolibInterfaceAdapter_base *radio) : managedInterfaceImpl_t(name), radioAdapter(radio)
+radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, uint32_t irqPin, resourceLock &spi, radiolibInterfaceAdapter_base *radio) : managedInterfaceImpl_t(name), radioAdapter(radio), radioSpiL(spi)
 {
 	_IN = true;
 	_OUT = true;
@@ -29,6 +30,7 @@ bool radioLibInterface::start()
 {
 	_online = false;
 	INFO("Start receive...");
+	std::lock_guard<resourceLock> lg(radioSpiL);
 	Serial.printf("radio start receive with status code: %d\n", radioAdapter->startReceive());
 
 	_online = true;
@@ -45,10 +47,11 @@ void radioLibInterface::loop()
 
 	if (_online)
 	{
+		// used as polling not irq
 		if (irqPin && digitalRead(irqPin))
 		{
 			// Check for incoming packet
-#ifdef ARDUINO
+			std::lock_guard<resourceLock> lg(radioSpiL);
 			if (radioAdapter->receiveDone())
 			{
 				receiveDone = 0;
@@ -88,7 +91,6 @@ void radioLibInterface::loop()
 				Serial.println("###################################  Sending done!   ###################################");
 				radioAdapter->startReceive();
 			}
-#endif
 		}
 	}
 }
@@ -97,6 +99,7 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 {
 	if (newConfig.ifType == managedInterfaceImpl_t::IF_RADIOLIB)
 	{
+		std::lock_guard<resourceLock> lg(radioSpiL);
 		// to shorten member acces a bit
 		auto &mdmCfg = newConfig.interfaceConfig.radiolibConfig.modemConfig;
 		switch (newConfig.interfaceConfig.radiolibConfig.modemType)
@@ -139,6 +142,7 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 
 /*virtual*/ void radioLibInterface::send_outgoing(const Bytes &data)
 {
+	std::lock_guard<resourceLock> lg(radioSpiL);
 
 	DEBUG(toString() + ".on_outgoing: data: " + data.toHex());
 	try
@@ -148,7 +152,6 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 
 			TRACE("radioLibInterface: sending " + std::to_string(data.size()) + " bytes...");
 			//  Send packet
-#ifdef ARDUINO
 
 			// uint8_t *header = 0;
 			//*header = (Cryptography::randomnum(256) & 0xF0);
@@ -160,7 +163,6 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 			// add payload
 			radioAdapter->startTransmit(data.data(), data.size());
 
-#endif
 			TRACE("radioLibInterface: sent bytes");
 		}
 

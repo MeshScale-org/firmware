@@ -1,36 +1,21 @@
 #include "resourceLock.h"
 
-#if USE_RTOS // for RTOS support
+#if USE_RTOS
 
-bool resourceLock::take()
+void resourceLock::lock()
 {
-    // TODO: implement
+    xSemaphoreTake(mutex, portMAX_DELAY);
 }
 
-void resourceLock::release()
+void resourceLock::unlock()
 {
-    // TODO: implement
+    xSemaphoreGive(mutex);
 }
 
 #else // no RTOS, no locks needed
 
-bool resourceLock::take()
-{
-    if (lockActive)
-    {
-        return false;
-    }
-    else
-    {
-        lockActive = true;
-        return true;
-    }
-    return true;
-}
+void resourceLock::lock() {}
 
-void resourceLock::release()
-{
-    lockActive = false;
-}
+void resourceLock::unlock() {}
 
 #endif

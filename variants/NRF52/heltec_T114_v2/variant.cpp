@@ -27,6 +27,8 @@
 #include "interfaces/radiolibInterface.h"
 #include "interfaces/radiolibInterfaceAdapters/SX1262Adapter.h"
 
+#include "os/concurrency/SPIClassL.h"
+
 const uint32_t g_ADigitalPinMap[] = {
     // P0 - pins 0 and 1 are hardwired for xtal and should never be enabled
     0xff, 0xff, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
@@ -69,9 +71,7 @@ void variantSetDefaultInterfaces()
 
   loraInterface->managedInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
-  // TODO: replace by factory using managedInterfaceConfig.interfaceConfig.radiolibConfig.radioType (RADIO_SX1262)
-  // loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY)));
-  loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", SX126X_DIO1, new SX1262Adapter(new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY))));
+  loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", SX126X_DIO1, SPI0L, new SX1262Adapter(new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L.get()))));
 
   // transfer pointer to interfaceManager
   interfaceManager::addInterface(0, loraInterface);

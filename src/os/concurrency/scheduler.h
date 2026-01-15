@@ -8,8 +8,10 @@
 class scheduler
 {
 public:
+#ifndef USE_RTOS
     // when running in cooperative threading mode (no RTOS)
     static void runCoOp() { get().runCoOpImpl(); };
+#endif
     static void registerTask(thread *newThread) { get().registerTaskImpl(newThread); };
     // when should the scheduler be called again (or earlier)
     unsigned long firstNextRunTime;
@@ -21,9 +23,16 @@ private:
         static scheduler instance;
         return instance;
     }
+
+#ifndef USE_RTOS
     void runCoOpImpl();
+#endif
     void registerTaskImpl(thread *newThread);
 
 private:
+#if USE_RTOS
+    std::vector<TaskHandle_t *> TaskHandles; // stored but not used
+#else
     std::vector<thread *> threads;
+#endif
 };

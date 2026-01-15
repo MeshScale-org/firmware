@@ -5,6 +5,8 @@
 #include "os/fileSystem.h"
 #include "os/concurrency/scheduler.h"
 
+#include <mutex>
+
 // We initialise two lists of strings to use as app_data
 const char *fruits[] = {"Peach", "Quince", "Date", "Tangerine", "Pomelo", "Carambola", "Grape"};
 const char *noble_gases[] = {"Helium", "Neon", "Argon", "Krypton", "Xenon", "Radon", "Oganesson"};
@@ -200,10 +202,11 @@ void setup()
   Serial.begin(115200);
 
   // start SPI
+  std::lock_guard<resourceLock> lg(SPI0L);
 #ifdef ESP32
-  SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
+  SPI0L.get().begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
 #else
-  SPI.begin();
+  SPI0L.get().begin();
 #endif
 
   // setup default interfaces
@@ -221,7 +224,7 @@ void setup()
 
   // print out interfaces setup by variant
   delay(100);
-  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(false).c_str());
+  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(true).c_str());
   delay(500); // give print some time
 
   // do initial announce
@@ -231,17 +234,20 @@ void setup()
   // RNS::loglevel(RNS::LOG_WARNING);
   RNS::loglevel(RNS::LOG_TRACE);
 
+  // create and register threads
+  scheduler::registerTask(new threadReticulum("threadReticulum"));
+  scheduler::registerTask(new threadAnnounce("threadAnnounce"));
+  scheduler::registerTask(new threadPacket("threadPacket"));
   Serial.println("end of setup()");
   delay(200);
 
-  // create and register threads
-  scheduler::registerTask(new threadReticulum());
-  scheduler::registerTask(new threadAnnounce());
-  scheduler::registerTask(new threadPacket());
-
 #ifdef USE_RTOS
+#ifdef MCU_ESP32
   // delete the setup/loop task and let scheduler run actual tasks
   vTaskDelete(NULL);
+#else
+// TODO add support for vanilla freeRTOS
+#endif
 #endif
 }
 
