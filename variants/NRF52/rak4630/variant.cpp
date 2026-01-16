@@ -19,9 +19,9 @@
 */
 
 #include "variant.h"
-#include "nrf.h"
 #include "wiring_constants.h"
 #include "wiring_digital.h"
+#include "nrf.h"
 
 #include "interfaceManager.h"
 #include "interfaces/radiolibInterface.h"
@@ -29,27 +29,43 @@
 
 #include "os/concurrency/SPIClassL.h"
 
-const uint32_t g_ADigitalPinMap[] = {
-    // P0
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-
-    // P1
-    32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47};
-
-// called by arduino
-void initVariant()
+#ifdef __cplusplus
+extern "C"
 {
-  // LED1 & LED2
-  pinMode(PIN_LED1, OUTPUT);
-  ledOff(PIN_LED1);
+#endif // __cplusplus
 
-  pinMode(PIN_LED2, OUTPUT);
-  ledOff(PIN_LED2);
+  const uint32_t g_ADigitalPinMap[] =
+      {
+          // P0
+          0, 1, 2, 3, 4, 5, 6, 7,
+          8, 9, 10, 11, 12, 13, 14, 15,
+          16, 17, 18, 19, 20, 21, 22, 23,
+          24, 25, 26, 27, 28, 29, 30, 31,
 
-  // 3V3 Power Rail
-  pinMode(PIN_3V3_EN, OUTPUT);
-  digitalWrite(PIN_3V3_EN, HIGH);
+          // P1
+          32, 33, 34, 35, 36, 37, 38, 39,
+          40, 41, 42, 43, 44, 45, 46, 47};
+
+  void initVariant()
+  {
+    // LED1 & LED2
+    pinMode(PIN_LED1, OUTPUT);
+    ledOff(PIN_LED1);
+
+    pinMode(PIN_LED2, OUTPUT);
+    ledOff(PIN_LED2);
+  }
+#ifdef __cplusplus
 }
+#endif
+
+// variant default interfaces
+
+// SX1262 radio
+#define SX126X_CS (42)
+#define SX126X_DIO1 (47)
+#define SX126X_BUSY (46)
+#define SX126X_RESET (38)
 
 void variantSetDefaultInterfaces()
 {
