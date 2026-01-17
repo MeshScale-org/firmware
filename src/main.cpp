@@ -201,23 +201,24 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
 
-  // start SPI
-  std::lock_guard<resourceLock> lg(SPI0L);
-#ifdef ESP32
-  SPI0L.get().begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
-#else
-  SPI0L.get().begin();
-#endif
+  while (millis() < 7000)
+  {
+    Serial.print("Hello from device\n");
+    delay(500);
+  }
 
+  Serial.println("SPIxL.begin()");
+  // SPI begin
+  setupSPI();
+
+  Serial.println("Setting up default interfaces (variant)");
   // setup default interfaces
   variantSetDefaultInterfaces();
   delay(5000);
 
   // register known interface with reticulum transport
-  Serial.print("Hello from device\n");
-  Serial.print("Registering interfaces....\n");
+  Serial.print("Registering interfaces with rns transport....\n");
   interfaceManager::registerIfsTransport();
-  Serial.print("Registering done\n");
 
   // setup reticulum
   reticulum_setup();
@@ -227,12 +228,9 @@ void setup()
   Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(true).c_str());
   delay(500); // give print some time
 
-  // do initial announce
-  reticulum_announce();
-
   // reduce printouts after setup
-  // RNS::loglevel(RNS::LOG_WARNING);
-  RNS::loglevel(RNS::LOG_TRACE);
+  RNS::loglevel(RNS::LOG_WARNING);
+  // RNS::loglevel(RNS::LOG_TRACE);
 
   // create and register threads
   scheduler::registerTask(new threadReticulum("threadReticulum"));
@@ -259,5 +257,15 @@ void loop()
 #else
   // use cooperative scheduler
   scheduler::runCoOp();
+#endif
+}
+
+void setupSPI()
+{
+  std::lock_guard<resourceLock> lg(SPI0L);
+#ifdef ESP32
+  SPI0L.get().begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
+#else
+  SPI0L.get().begin();
 #endif
 }

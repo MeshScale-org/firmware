@@ -10,7 +10,7 @@
 
 using namespace RNS;
 
-UDPInterface::UDPInterface(const char *name /*= "UDPInterface"*/) : managedInterfaceImpl_t(name)
+UDPInterface::UDPInterface(std::string name /*= "UDPInterface"*/) : managedInterfaceImpl_t(name)
 {
 
 	_IN = true;

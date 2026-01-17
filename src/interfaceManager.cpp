@@ -1,18 +1,91 @@
 #include "interfaceManager.h"
 
+#include "interfaces/radiolibInterfaceAdapters/radiolibInterfaceAdapters_includeAll.h"
+#include "interfaces/radioLibInterface.h"
+#include "interfaces/UDPInterface.h"
+
 bool interfaceManager::addInterfaceImpl(uint8_t ifID, managedInterface_t *newInterface, bool autoStart /*=true*/)
 {
-    newInterface->transportIf = RNS::Interface(newInterface->managedInterfaceImpl);
-    // interfaces.push_back(newInterface);
-    interfaces.insert({ifID, newInterface});
-    // start radio with initial config
-    newInterface->managedInterfaceImpl->updateConfig(newInterface->managedInterfaceConfig);
-    if (autoStart)
+    if (newInterface)
     {
-        newInterface->transportIf.start();
+
+        // TODO check if inset was succes, if not delete newInterface and return false
+        interfaces.insert({ifID, newInterface});
+        // start radio with initial config
+
+        newInterface->managedInterfaceImpl->updateConfig(newInterface->managedInterfaceConfig);
+        if (autoStart)
+        {
+            // TODO: check if start is succes, if not delete newInterface and return false
+            newInterface->transportIf.start();
+        }
+        return true;
     }
-    return true;
+    else
+    {
+        Serial.println("adding interface not possible: nullptr");
+        return false;
+    }
 };
+
+// factory for radiolib interface
+interfaceManager::managedInterface_t *interfaceManager::createInterface(std::string ifName, managedInterfaceImpl_t::managedInterfaceConfig_t ifConfig, radioLimits_t radioLimits, uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio, SPIClassL &spi, SPISettings spiSettings)
+{
+    Serial.printf("Creating interface %s: ", ifName.c_str());
+    radiolibInterfaceAdapter_base *radioAdapter = nullptr;
+    managedInterface_t *managedInterface = new managedInterface_t;
+
+    if (ifConfig.ifType == managedInterfaceImpl_t::IF_RADIOLIB)
+    {
+        Serial.printf("IF_RADIOLIB, ");
+        Module *ifModule = new Module(cs, irq, rst, gpio, spi.get(), spiSettings);
+
+        switch (ifConfig.interfaceConfig.radiolibConfig.radioType)
+        {
+        case managedInterfaceImpl_t::RADIO_SX1262:
+            Serial.printf("RADIO_SX1262, ");
+            radioAdapter = new SX1262Adapter(new SX1262(ifModule), radioLimits);
+            break;
+        default: // radio not supported
+            delete ifModule;
+            return nullptr;
+            break;
+        }
+
+        // populate managedInterface
+        managedInterface->managedInterfaceConfig = ifConfig;
+        managedInterface->managedInterfaceImpl = new radioLibInterface(ifName, irq, spi, radioAdapter);
+        managedInterface->transportIf = RNS::Interface(managedInterface->managedInterfaceImpl);
+        Serial.printf("Creation succes\n");
+        return managedInterface;
+    }
+    else
+    {
+        delete managedInterface;
+        Serial.println("Wrong createInterface overload called");
+        return nullptr;
+    }
+};
+
+#ifndef EXCLUDE_INTERFACE_UDP
+// factory for UDP interface
+interfaceManager::managedInterface_t *interfaceManager::createInterface(std::string ifName, managedInterfaceImpl_t::managedInterfaceConfig_t ifConfig)
+{
+    if (ifConfig.ifType == managedInterfaceImpl_t::IF_UDP)
+    {
+        managedInterface_t *managedInterface = new managedInterface_t;
+        managedInterface->managedInterfaceConfig = ifConfig;
+        managedInterface->managedInterfaceImpl = new UDPInterface(ifName);
+        managedInterface->transportIf = RNS::Interface(managedInterface->managedInterfaceImpl);
+        return managedInterface;
+    }
+    else
+    {
+        Serial.println("Wrong createInterface overload called");
+        return nullptr;
+    }
+};
+#endif
 
 bool interfaceManager::configureInterfaceImpl(uint8_t ifID, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig)
 {

@@ -20,3 +20,6 @@ extern RNS::Destination destination;
 void reticulum_announce();
 void toggleLed();
 void send_packet();
+
+// used during setup
+void setupSPI();

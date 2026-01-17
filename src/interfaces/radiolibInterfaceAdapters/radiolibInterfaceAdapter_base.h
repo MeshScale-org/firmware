@@ -1,12 +1,23 @@
 #pragma once
 #include <RadioLib.h>
 
+// TODO create proper namespace system
+// hardware limits of a radio on a specific device/version
+struct radioLimits_t
+{
+    float minFreq;
+    float maxFreq;
+    uint8_t minPower;
+    uint8_t maxPower;
+};
+
 // All used radiolib radio-specific methods defined as virtual method here and returns RADIOLIB_ERR_UNSUPPORTED, unless overwrtitten
 class radiolibInterfaceAdapter_base
 {
 
 public:
-    radiolibInterfaceAdapter_base(PhysicalLayer *radio) : radio(radio) {};
+    radiolibInterfaceAdapter_base(PhysicalLayer *radio, radioLimits_t radioLimits) : radio(radio), _radioLimits(radioLimits) {};
+    ~radiolibInterfaceAdapter_base() { delete radio; };
     // methods required for radiolibInterface.cpp, methods of radiolib PhysicalLayer
 public:
     int16_t startReceive() { return radio->startReceive(); };
@@ -39,4 +50,7 @@ public:
 
 private:
     PhysicalLayer *radio;
+
+protected:
+    const radioLimits_t _radioLimits;
 };

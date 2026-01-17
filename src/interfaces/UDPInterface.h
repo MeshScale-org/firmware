@@ -30,7 +30,7 @@ public:
 
 public:
 	// p def __init__(self, owner, name, device=None, bindip=None, bindport=None, forwardip=None, forwardport=None):
-	UDPInterface(const char *name = "UDPInterface");
+	UDPInterface(std::string name = "UDPInterface");
 	virtual ~UDPInterface();
 
 	// bool start(const char* wifi_ssid, const char* wifi_password, int port = DEFAULT_UDP_PORT, const char* local_host = nullptr);

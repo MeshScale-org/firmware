@@ -5,4 +5,5 @@ void threadAnnounce::runOnce()
 {
     reticulum_announce();
     nextRunTime = millis() + announceInterval;
+    nextRunTime = 0;
 }

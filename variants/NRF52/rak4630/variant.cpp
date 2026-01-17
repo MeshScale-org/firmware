@@ -70,25 +70,30 @@ extern "C"
 void variantSetDefaultInterfaces()
 {
   // add interfaces to interfacemanager
+
+  Serial.println("Setting up sx1262");
   // sx1262 loraInterface
-  interfaceManager::managedInterface_t *loraInterface = new interfaceManager::managedInterface_t;
+  radioLimits_t radioLimits;
+  radioLimits.minFreq = 863;
+  radioLimits.maxFreq = 870;
+  radioLimits.minPower = -9;
+  radioLimits.maxFreq = 22;
 
-  loraInterface->managedInterfaceConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
-  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radioType = managedInterfaceImpl_t::RADIO_SX1262;
+  managedInterfaceImpl_t::managedInterfaceConfig_t sx1262InterfaceConfig;
+  sx1262InterfaceConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
+  sx1262InterfaceConfig.interfaceConfig.radiolibConfig.radioType = managedInterfaceImpl_t::RADIO_SX1262;
 
-  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemType = managedInterfaceImpl_t::MODEM_LORA;
-  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.frequency = 869.5;
-  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.bandwidth = 125;
-  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.spreadingFactor = 9;
-  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.codingRate = 7;
-  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.syncWord = 0x42;
-  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.power = 5; // low power during testing
-  loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.preambleLength = 0x16;
+  sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemType = managedInterfaceImpl_t::MODEM_LORA;
+  sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.frequency = 869.5;
+  sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.bandwidth = 125;
+  sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.spreadingFactor = 9;
+  sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.codingRate = 7;
+  sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.syncWord = 0x42;
+  sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.power = 5; // low power during testing
+  sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.preambleLength = 16;
 
-  loraInterface->managedInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
+  sx1262InterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
-  loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", SX126X_DIO1, SPI0L, new SX1262Adapter(new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L.get()))));
-
-  // transfer pointer to interfaceManager
-  interfaceManager::addInterface(0, loraInterface);
+  // add to interfaceManager
+  interfaceManager::addInterface(12, interfaceManager::createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
 }

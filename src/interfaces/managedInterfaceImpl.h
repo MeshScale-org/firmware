@@ -43,7 +43,7 @@ public:
         int8_t power = 0; // in dbm
         uint16_t preambleLength = 0;
     };
-    // radiolib modem: Lora
+    // radiolib modem: FSK
     struct fskConfig_t
     {
         float frequency = 0;
@@ -110,7 +110,7 @@ public:
     };
 
 public:
-    managedInterfaceImpl_t(const char *name) : RNS::InterfaceImpl(name) {};
+    managedInterfaceImpl_t(std::string name) : RNS::InterfaceImpl(name.c_str()) {};
 
     virtual bool updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t rnsInterfaceDescription) = 0;
 };

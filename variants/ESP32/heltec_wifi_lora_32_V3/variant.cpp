@@ -10,42 +10,46 @@
 #include "os/concurrency/SPIClassL.h"
 void variantSetDefaultInterfaces()
 {
+
     // add interfaces to interfacemanager
+
+    Serial.println("Setting up sx1262");
     // sx1262 loraInterface
-    interfaceManager::managedInterface_t *loraInterface = new interfaceManager::managedInterface_t;
+    radioLimits_t radioLimits;
+    radioLimits.minFreq = 863;
+    radioLimits.maxFreq = 870;
+    radioLimits.minPower = -9;
+    radioLimits.maxFreq = 22;
 
-    loraInterface->managedInterfaceConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.radioType = managedInterfaceImpl_t::RADIO_SX1262;
+    managedInterfaceImpl_t::managedInterfaceConfig_t sx1262InterfaceConfig;
+    sx1262InterfaceConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
+    sx1262InterfaceConfig.interfaceConfig.radiolibConfig.radioType = managedInterfaceImpl_t::RADIO_SX1262;
 
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemType = managedInterfaceImpl_t::MODEM_LORA;
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.frequency = 869.5;
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.bandwidth = 125;
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.spreadingFactor = 9;
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.codingRate = 7;
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.syncWord = 0x42;
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.power = 5; // low power during testing
-    loraInterface->managedInterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.preambleLength = 16;
+    sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemType = managedInterfaceImpl_t::MODEM_LORA;
+    sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.frequency = 869.5;
+    sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.bandwidth = 125;
+    sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.spreadingFactor = 9;
+    sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.codingRate = 7;
+    sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.syncWord = 0x42;
+    sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.power = 5; // low power during testing
+    sx1262InterfaceConfig.interfaceConfig.radiolibConfig.modemConfig.loraConfig.preambleLength = 16;
 
-    loraInterface->managedInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
-
-    // TODO: replace by factory using managedInterfaceConfig.interfaceConfig.radiolibConfig.radioType (RADIO_SX1262) and avoid multiple SX126X_DIO1, SPI0L, ...
-    loraInterface->managedInterfaceImpl = new radioLibInterface("sx1262 loraInterface", SX126X_DIO1, SPI0L, new SX1262Adapter(new SX1262(new Module(SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L.get()))));
+    sx1262InterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
     // interface ID, interface pair
-    interfaceManager::addInterface(0, loraInterface);
+    interfaceManager::addInterface(4, interfaceManager::createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
 
+    Serial.println("Setting up wifi IF");
     // wifi interface
-    interfaceManager::managedInterface_t *wifiInterface = new interfaceManager::managedInterface_t;
+    managedInterfaceImpl_t::managedInterfaceConfig_t udpInterfaceConfig;
 
-    wifiInterface->managedInterfaceConfig.ifType = managedInterfaceImpl_t::IF_UDP;
+    udpInterfaceConfig.ifType = managedInterfaceImpl_t::IF_UDP;
 
-    wifiInterface->managedInterfaceConfig.interfaceConfig.udpConfig.medium = managedInterfaceImpl_t::MEDIUM_WIFI;
-    wifiInterface->managedInterfaceConfig.interfaceConfig.udpConfig.network.SSID = WIFI_SSID;
-    wifiInterface->managedInterfaceConfig.interfaceConfig.udpConfig.network.KEY = WIFI_KEY;
+    udpInterfaceConfig.interfaceConfig.udpConfig.medium = managedInterfaceImpl_t::MEDIUM_WIFI;
+    udpInterfaceConfig.interfaceConfig.udpConfig.network.SSID = WIFI_SSID;
+    udpInterfaceConfig.interfaceConfig.udpConfig.network.KEY = WIFI_KEY;
 
-    wifiInterface->managedInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
+    udpInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
-    wifiInterface->managedInterfaceImpl = new UDPInterface("Wifi Interface");
-
-    interfaceManager::addInterface(1, wifiInterface);
+    interfaceManager::addInterface(7, interfaceManager::createInterface("Wifi Interface", udpInterfaceConfig));
 }

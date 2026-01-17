@@ -18,7 +18,7 @@ class radioLibInterface : public managedInterfaceImpl_t
 {
 
 public:
-	radioLibInterface(const char *name, uint32_t irqPin, resourceLock &radioSpiL, radiolibInterfaceAdapter_base *radio);
+	radioLibInterface(std::string name, uint32_t irqPin, resourceLock &radioSpiL, radiolibInterfaceAdapter_base *radio);
 	virtual ~radioLibInterface();
 
 	virtual bool start();

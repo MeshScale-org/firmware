@@ -11,7 +11,7 @@
 
 using namespace RNS;
 
-radioLibInterface::radioLibInterface(const char *name /*= "radioLibInterface"*/, uint32_t irqPin, resourceLock &spi, radiolibInterfaceAdapter_base *radio) : managedInterfaceImpl_t(name), radioAdapter(radio), radioSpiL(spi)
+radioLibInterface::radioLibInterface(std::string name, uint32_t irqPin, resourceLock &spi, radiolibInterfaceAdapter_base *radio) : managedInterfaceImpl_t(name), radioAdapter(radio), radioSpiL(spi)
 {
 	_IN = true;
 	_OUT = true;
