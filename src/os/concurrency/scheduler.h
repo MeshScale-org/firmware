@@ -12,9 +12,10 @@ public:
     // when running in cooperative threading mode (no RTOS)
     static void runCoOp() { get().runCoOpImpl(); };
 #endif
-    static void registerTask(thread *newThread) { get().registerTaskImpl(newThread); };
-    // when should the scheduler be called again (or earlier)
-    unsigned long firstNextRunTime;
+    static void addThread(thread *newThread) { get().addThreadImpl(newThread); };
+
+    // smallest timeTilNextRun of all threads: When should the scheduler be called again (or earlier), can be used for sleep/power saving
+    static unsigned long minTimeTilNextRun;
 
 private:
     // get singleton instance
@@ -27,7 +28,7 @@ private:
 #ifndef USE_RTOS
     void runCoOpImpl();
 #endif
-    void registerTaskImpl(thread *newThread);
+    void addThreadImpl(thread *newThread);
 
 private:
 #if USE_RTOS

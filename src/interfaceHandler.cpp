@@ -1,10 +1,10 @@
-#include "interfaceManager.h"
+#include "interfaceHandler.h"
 
 #include "interfaces/radiolibInterfaceAdapters/radiolibInterfaceAdapters_includeAll.h"
 #include "interfaces/radioLibInterface.h"
 #include "interfaces/UDPInterface.h"
 
-bool interfaceManager::addInterfaceImpl(uint8_t ifID, managedInterface_t *newInterface, bool autoStart /*=true*/)
+bool interfaceHandler_t::addInterface(uint8_t ifID, managedInterface_t *newInterface, bool autoStart /*=true*/)
 {
     if (newInterface)
     {
@@ -29,7 +29,7 @@ bool interfaceManager::addInterfaceImpl(uint8_t ifID, managedInterface_t *newInt
 };
 
 // factory for radiolib interface
-interfaceManager::managedInterface_t *interfaceManager::createInterface(std::string ifName, managedInterfaceImpl_t::managedInterfaceConfig_t ifConfig, radioLimits_t radioLimits, uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio, SPIClassL &spi, SPISettings spiSettings)
+interfaceHandler_t::managedInterface_t *interfaceHandler_t::createInterface(std::string ifName, managedInterfaceImpl_t::managedInterfaceConfig_t ifConfig, radioLimits_t radioLimits, uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio, SPIClassL &spi, SPISettings spiSettings)
 {
     Serial.printf("Creating interface %s: ", ifName.c_str());
     radiolibInterfaceAdapter_base *radioAdapter = nullptr;
@@ -44,7 +44,7 @@ interfaceManager::managedInterface_t *interfaceManager::createInterface(std::str
         {
         case managedInterfaceImpl_t::RADIO_SX1262:
             Serial.printf("RADIO_SX1262, ");
-            radioAdapter = new SX1262Adapter(new SX1262(ifModule), radioLimits);
+            radioAdapter = new SX1262Adapter(new SX1262(ifModule), radioLimits, spi);
             break;
         default: // radio not supported
             delete ifModule;
@@ -69,7 +69,7 @@ interfaceManager::managedInterface_t *interfaceManager::createInterface(std::str
 
 #ifndef EXCLUDE_INTERFACE_UDP
 // factory for UDP interface
-interfaceManager::managedInterface_t *interfaceManager::createInterface(std::string ifName, managedInterfaceImpl_t::managedInterfaceConfig_t ifConfig)
+interfaceHandler_t::managedInterface_t *interfaceHandler_t::createInterface(std::string ifName, managedInterfaceImpl_t::managedInterfaceConfig_t ifConfig)
 {
     if (ifConfig.ifType == managedInterfaceImpl_t::IF_UDP)
     {
@@ -87,7 +87,7 @@ interfaceManager::managedInterface_t *interfaceManager::createInterface(std::str
 };
 #endif
 
-bool interfaceManager::configureInterfaceImpl(uint8_t ifID, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig)
+bool interfaceHandler_t::configureInterface(uint8_t ifID, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig)
 {
     if (interfaces.find(ifID) != interfaces.end())
     {
@@ -115,12 +115,12 @@ bool interfaceManager::configureInterfaceImpl(uint8_t ifID, managedInterfaceImpl
     }
     else
     {
-        Serial.printf("interfaceManager::configureInterfaceImpl: ERROR: Interface with id: %d does not exist, interface config not changed\n", ifID);
+        Serial.printf("interfaceHandler_t::configureInterfaceImpl: ERROR: Interface with id: %d does not exist, interface config not changed\n", ifID);
         return false;
     }
 };
 
-bool interfaceManager::registerIfsTransportImpl()
+bool interfaceHandler_t::registerIfsTransport()
 {
     bool ret = false;
     for (auto it = interfaces.begin(); it != interfaces.end(); ++it)
@@ -136,7 +136,7 @@ bool interfaceManager::registerIfsTransportImpl()
     return ret;
 };
 
-void interfaceManager::loopImpl()
+void interfaceHandler_t::loop()
 {
     for (auto it = interfaces.begin(); it != interfaces.end(); ++it)
     {
@@ -145,11 +145,11 @@ void interfaceManager::loopImpl()
             it->second->transportIf.loop();
             return;
         }
-        Serial.printf("interfaceManager::loopImpl: ERROR: nullptr error\n");
+        Serial.printf("interfaceHandler_t::loopImpl: ERROR: nullptr error\n");
     }
 };
 
-String interfaceManager::interfacesToStringImpl(bool verbose)
+String interfaceHandler_t::interfacesToString(bool verbose)
 {
     String outString = "";
     outString += "Number of Interfaces: ";

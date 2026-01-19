@@ -6,12 +6,9 @@
 #include "../src/Log.h"
 #include "../src/Utilities/OS.h"
 
-#include <memory>
-#include <mutex>
-
 using namespace RNS;
 
-radioLibInterface::radioLibInterface(std::string name, uint32_t irqPin, resourceLock &spi, radiolibInterfaceAdapter_base *radio) : managedInterfaceImpl_t(name), radioAdapter(radio), radioSpiL(spi)
+radioLibInterface::radioLibInterface(std::string name, uint32_t irqPin, resourceLock &spi, radiolibInterfaceAdapter_base *radio) : managedInterfaceImpl_t(name), radioAdapter(radio)
 {
 	_IN = true;
 	_OUT = true;
@@ -30,7 +27,6 @@ bool radioLibInterface::start()
 {
 	_online = false;
 	INFO("Start receive...");
-	std::lock_guard<resourceLock> lg(radioSpiL);
 	Serial.printf("radio start receive with status code: %d\n", radioAdapter->startReceive());
 
 	_online = true;
@@ -44,14 +40,12 @@ void radioLibInterface::stop()
 
 void radioLibInterface::loop()
 {
-
 	if (_online)
 	{
 		// used as polling not irq
 		if (irqPin && digitalRead(irqPin))
 		{
 			// Check for incoming packet
-			std::lock_guard<resourceLock> lg(radioSpiL);
 			if (radioAdapter->receiveDone())
 			{
 				receiveDone = 0;
@@ -99,7 +93,6 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 {
 	if (newConfig.ifType == managedInterfaceImpl_t::IF_RADIOLIB)
 	{
-		std::lock_guard<resourceLock> lg(radioSpiL);
 		// to shorten member acces a bit
 		auto &mdmCfg = newConfig.interfaceConfig.radiolibConfig.modemConfig;
 		switch (newConfig.interfaceConfig.radiolibConfig.modemType)
@@ -142,7 +135,6 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 
 /*virtual*/ void radioLibInterface::send_outgoing(const Bytes &data)
 {
-	std::lock_guard<resourceLock> lg(radioSpiL);
 
 	DEBUG(toString() + ".on_outgoing: data: " + data.toHex());
 	try

@@ -2,7 +2,7 @@
 #pragma once
 #include <Reticulum.h>
 
-class interfaceManager;
+class interfaceHandler_t;
 
 class managedInterfaceImpl_t : public RNS::InterfaceImpl
 {

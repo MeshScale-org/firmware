@@ -1,5 +1,6 @@
 #include "variant.h"
-#include "interfaceManager.h"
+#include "main.h"
+#include "interfaceHandler.h"
 #include "../../../credentials.h"
 
 #include "interfaces/radiolibInterface.h"
@@ -8,10 +9,11 @@
 #include "interfaces/UDPInterface.h"
 
 #include "os/concurrency/SPIClassL.h"
+
 void variantSetDefaultInterfaces()
 {
 
-    // add interfaces to interfacemanager
+    // add interfaces to interfaceHandler
 
     Serial.println("Setting up sx1262");
     // sx1262 loraInterface
@@ -19,7 +21,7 @@ void variantSetDefaultInterfaces()
     radioLimits.minFreq = 863;
     radioLimits.maxFreq = 870;
     radioLimits.minPower = -9;
-    radioLimits.maxFreq = 22;
+    radioLimits.maxPower = 22;
 
     managedInterfaceImpl_t::managedInterfaceConfig_t sx1262InterfaceConfig;
     sx1262InterfaceConfig.ifType = managedInterfaceImpl_t::IF_RADIOLIB;
@@ -37,7 +39,7 @@ void variantSetDefaultInterfaces()
     sx1262InterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
     // interface ID, interface pair
-    interfaceManager::addInterface(4, interfaceManager::createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
+    interfaceHandler.addInterface(4, interfaceHandler.createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
 
     Serial.println("Setting up wifi IF");
     // wifi interface
@@ -51,5 +53,5 @@ void variantSetDefaultInterfaces()
 
     udpInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
-    interfaceManager::addInterface(7, interfaceManager::createInterface("Wifi Interface", udpInterfaceConfig));
+    interfaceHandler.addInterface(7, interfaceHandler.createInterface("Wifi Interface", udpInterfaceConfig));
 }

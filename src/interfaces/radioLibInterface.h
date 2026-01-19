@@ -10,8 +10,6 @@
 // radiolib
 #include <RadioLib.h>
 
-#include "os/concurrency/SPIClassL.h"
-
 #include <stdint.h>
 
 class radioLibInterface : public managedInterfaceImpl_t
@@ -41,7 +39,6 @@ private:
 	// would take irqPin from radiolib module but its protected/private
 	// uint16_t irqPin = radioAdapter->getRadio()->getMod()->getIrq();
 	uint32_t irqPin;
-	resourceLock &radioSpiL;
 };
 
 #endif

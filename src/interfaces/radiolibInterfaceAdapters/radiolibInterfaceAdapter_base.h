@@ -1,6 +1,8 @@
 #pragma once
 #include <RadioLib.h>
 
+#include "os/concurrency/SPIClassL.h"
+
 // TODO create proper namespace system
 // hardware limits of a radio on a specific device/version
 struct radioLimits_t
@@ -16,31 +18,20 @@ class radiolibInterfaceAdapter_base
 {
 
 public:
-    radiolibInterfaceAdapter_base(PhysicalLayer *radio, radioLimits_t radioLimits) : radio(radio), _radioLimits(radioLimits) {};
+    radiolibInterfaceAdapter_base(PhysicalLayer *radio, radioLimits_t radioLimits, resourceLock &spiLock) : radio(radio), _radioLimits(radioLimits), radioSpiL(spiLock) {};
     ~radiolibInterfaceAdapter_base() { delete radio; };
     // methods required for radiolibInterface.cpp, methods of radiolib PhysicalLayer
 public:
-    int16_t startReceive() { return radio->startReceive(); };
-    size_t getPacketLength(bool update = true) { return radio->getPacketLength(); };
-    int16_t readData(uint8_t *data, size_t len) { return radio->readData(data, len); };
-    int16_t startTransmit(const uint8_t *data, size_t len, uint8_t addr = 0) { return radio->startTransmit(data, len, addr); };
-    int16_t finishTransmit() { return radio->finishTransmit(); };
+    int16_t startReceive();
+    size_t getPacketLength(bool update = true);
+    int16_t readData(uint8_t *data, size_t len);
+    int16_t startTransmit(const uint8_t *data, size_t len, uint8_t addr = 0);
+    int16_t finishTransmit();
 
-    float getRSSI() { return radio->getRSSI(); };
-    float getSNR() { return radio->getSNR(); };
-    bool receiveDone()
-    {
-        bool res = radio->getIrqFlags() & RADIOLIB_SX126X_IRQ_RX_DONE;
-        radio->clearIrq(RADIOLIB_SX126X_IRQ_RX_DONE);
-        return res;
-    }
-    bool transmitDone()
-    {
-        bool res = radio->getIrqFlags() & RADIOLIB_SX126X_IRQ_TX_DONE;
-        radio->clearIrq(RADIOLIB_SX126X_IRQ_TX_DONE);
-        return res;
-    }
-    // PhysicalLayer *getRadio() { return radio; };
+    float getRSSI();
+    float getSNR();
+    bool receiveDone();
+    bool transmitDone();
 
     // radio specific, should be overridden if supported by specific radio
 public:
@@ -53,4 +44,5 @@ private:
 
 protected:
     const radioLimits_t _radioLimits;
+    resourceLock &radioSpiL;
 };

@@ -7,9 +7,14 @@
 
 #include <mutex>
 
-// We initialise two lists of strings to use as app_data
-const char *fruits[] = {"Peach", "Quince", "Date", "Tangerine", "Pomelo", "Carambola", "Grape"};
-const char *noble_gases[] = {"Helium", "Neon", "Argon", "Krypton", "Xenon", "Radon", "Oganesson"};
+// define managers/handlers
+systemManager_t &systemManager = systemManager_t::getInstance();
+reticulumManager_t &reticulumManager = reticulumManager_t::getInstance();
+hardwareManager_t &hardwareManager = hardwareManager_t::getInstance();
+clientManager_t &clientManager = clientManager_t::getInstance();
+graphicsManager_t &graphicsManager = graphicsManager_t::getInstance();
+
+interfaceHandler_t &interfaceHandler = interfaceHandler_t::getInstance();
 
 RNS::Destination externDestination = RNS::Destination(RNS::Type::NONE);
 
@@ -72,43 +77,6 @@ fileSystem *filesystem_impl = nullptr;
 // ExampleAnnounceHandler announce_handler((const char*)"example_utilities.announcesample.fruits");
 // RNS::HAnnounceHandler announce_handler(new ExampleAnnounceHandler("example_utilities.announcesample.fruits"));
 RNS::HAnnounceHandler announce_handler(new ExampleAnnounceHandler());
-
-void toggleLed()
-{
-  static bool ledState = 0;
-  ledState = !ledState;
-  digitalWrite(LED_BUILTIN, ledState);
-}
-
-void reticulum_announce()
-{
-  if (destination)
-  {
-    Serial.printf("Announcing destination...\n");
-    // destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]));
-    //  test path
-    // destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]), true, nullptr, RNS::bytesFromString("test_tag"));
-    //  test packet send
-    destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]));
-  }
-}
-
-void send_packet()
-{
-  if (externDestination)
-  {
-    Serial.println("Creating send packet...");
-    RNS::Packet send_packet(externDestination, "msgContent123456");
-
-    Serial.println("Sending send packet...");
-    send_packet.pack();
-    send_packet.send();
-  }
-  else
-  {
-    Serial.println("Not sending package because no destination in known");
-  }
-}
 
 void reticulum_setup()
 {
@@ -218,14 +186,14 @@ void setup()
 
   // register known interface with reticulum transport
   Serial.print("Registering interfaces with rns transport....\n");
-  interfaceManager::registerIfsTransport();
+  interfaceHandler.registerIfsTransport();
 
   // setup reticulum
   reticulum_setup();
 
   // print out interfaces setup by variant
   delay(100);
-  Serial.printf("################################\n%s\n################################\n", interfaceManager::interfacesToString(true).c_str());
+  Serial.printf("################################\n%s\n################################\n", interfaceHandler.interfacesToString(true).c_str());
   delay(500); // give print some time
 
   // reduce printouts after setup
@@ -233,9 +201,12 @@ void setup()
   // RNS::loglevel(RNS::LOG_TRACE);
 
   // create and register threads
-  scheduler::registerTask(new threadReticulum("threadReticulum"));
-  scheduler::registerTask(new threadAnnounce("threadAnnounce"));
-  scheduler::registerTask(new threadPacket("threadPacket"));
+  scheduler::addThread(new thread("systemManager", systemManager));
+  scheduler::addThread(new thread("reticulumManager", reticulumManager));
+  scheduler::addThread(new thread("hardwareManager", hardwareManager));
+  scheduler::addThread(new thread("clientManager", clientManager));
+  scheduler::addThread(new thread("graphicsManager", graphicsManager));
+
   Serial.println("end of setup()");
   delay(200);
 
