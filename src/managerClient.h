@@ -4,27 +4,27 @@
 #include <queue>
 
 /*
-The reticulum Manager
+The client Manager, manages communication with client device (phone)
 
 Jobs:
-
-
+    communication with phone over BLE/Wifi
     ...
 */
 
-class reticulumManager_t : public manager_base
+class managerClient_t : public manager_base
 {
+
 public:
-    reticulumManager_t(reticulumManager_t &) = delete;
+    managerClient_t(managerClient_t &) = delete;
     // get singleton instance
-    inline static reticulumManager_t &getInstance()
+    inline static managerClient_t &getInstance()
     {
-        static reticulumManager_t instance;
+        static managerClient_t instance;
         return instance;
     }
 
 private:
-    reticulumManager_t() {};
+    managerClient_t() {};
 
 public:
     unsigned long loop();
@@ -32,5 +32,4 @@ public:
 
 private:
     std::queue<rumor_t> rumorsIn;
-    const unsigned long reticulumInterval = 1500;
 };

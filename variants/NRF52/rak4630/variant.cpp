@@ -24,9 +24,9 @@
 #include "wiring_digital.h"
 #include "nrf.h"
 
-#include "interfaceHandler.h"
-#include "interfaces/radiolibInterface.h"
-#include "interfaces/radiolibInterfaceAdapters/SX1262Adapter.h"
+#include "handlerNetworkInterfaces.h"
+#include "networkInterfaces/radiolibInterface.h"
+#include "networkInterfaces/radiolibInterfaceAdapters/SX1262Adapter.h"
 
 #include "os/concurrency/SPIClassL.h"
 
@@ -70,7 +70,7 @@ extern "C"
 
 void variantSetDefaultInterfaces()
 {
-  // add interfaces to interfaceHandler
+  // add interfaces to handlerNetworkInterfaces
 
   Serial.println("Setting up sx1262");
   // sx1262 loraInterface
@@ -95,6 +95,6 @@ void variantSetDefaultInterfaces()
 
   sx1262InterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
-  // add to interfaceHandler
-  interfaceHandler.addInterface(12, interfaceHandler.createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
+  // add to handlerNetworkInterfaces
+  handlerNetworkInterfaces.addInterface(12, handlerNetworkInterfaces.createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
 }

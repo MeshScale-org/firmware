@@ -14,20 +14,20 @@ Jobs:
     ...
 */
 
-class systemManager_t : public manager_base
+class managerSystem_t : public manager_base
 {
 
 public:
-    systemManager_t(systemManager_t &) = delete;
+    managerSystem_t(managerSystem_t &) = delete;
     // get singleton instance
-    inline static systemManager_t &getInstance()
+    inline static managerSystem_t &getInstance()
     {
-        static systemManager_t instance;
+        static managerSystem_t instance;
         return instance;
     }
 
 private:
-    systemManager_t() {};
+    managerSystem_t() {};
 
 public:
     unsigned long loop();

@@ -4,29 +4,32 @@
 #include <queue>
 
 /*
-The graphics Manager, manages all graphics and displays on the device
+The UI Manager, manages on-device interfaces(not network interfaces) to user like display and buttons
 
 Jobs:
     handle:
     graphics,
     rendering,
+    user button,
+    rotary,
+    keyboard,
     ...
 */
 
-class graphicsManager_t : public manager_base
+class managerUi_t : public manager_base
 {
 
 public:
-    graphicsManager_t(graphicsManager_t &) = delete;
+    managerUi_t(managerUi_t &) = delete;
     // get singleton instance
-    inline static graphicsManager_t &getInstance()
+    inline static managerUi_t &getInstance()
     {
-        static graphicsManager_t instance;
+        static managerUi_t instance;
         return instance;
     }
 
 private:
-    graphicsManager_t() {};
+    managerUi_t() {};
 
 public:
     unsigned long loop();

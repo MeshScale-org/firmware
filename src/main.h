@@ -5,13 +5,13 @@
 #include "os/concurrency/SPIClassL.h"
 
 // include managers and handlers
-#include "systemManager.h"
-#include "reticulumManager.h"
-#include "hardwareManager.h"
-#include "clientManager.h"
-#include "graphicsManager.h"
+#include "managerSystem.h"
+#include "managerNetwork.h"
+#include "managerHardware.h"
+#include "managerClient.h"
+#include "managerUi.h"
 
-#include "interfaceHandler.h"
+#include "handlerNetworkInterfaces.h"
 
 // Global RNS instances
 extern RNS::Reticulum reticulum;
@@ -20,13 +20,13 @@ extern RNS::Identity identity;
 extern RNS::Destination destination;
 
 // Global Manager/Handler instances
-extern systemManager_t &systemManager;
-extern reticulumManager_t &reticulumManager;
-extern hardwareManager_t &hardwareManager;
-extern clientManager_t &clientManager;
-extern graphicsManager_t &graphicsManager;
+extern managerSystem_t &managerSystem;
+extern managerNetwork_t &managerNetwork;
+extern managerHardware_t &managerHardware;
+extern managerClient_t &managerClient;
+extern managerUi_t &managerUi;
 
-extern interfaceHandler_t &interfaceHandler;
+extern handlerNetworkInterfaces_t &handlerNetworkInterfaces;
 
 extern RNS::Destination externDestination;
 

@@ -1,19 +1,19 @@
 #include "variant.h"
 #include "main.h"
-#include "interfaceHandler.h"
+#include "handlerNetworkInterfaces.h"
 #include "../../../credentials.h"
 
-#include "interfaces/radiolibInterface.h"
-#include "interfaces/radiolibInterfaceAdapters/SX1262Adapter.h"
+#include "networkInterfaces/radiolibInterface.h"
+#include "networkInterfaces/radiolibInterfaceAdapters/SX1262Adapter.h"
 
-#include "interfaces/UDPInterface.h"
+#include "networkInterfaces/UDPInterface.h"
 
 #include "os/concurrency/SPIClassL.h"
 
 void variantSetDefaultInterfaces()
 {
 
-    // add interfaces to interfaceHandler
+    // add interfaces to handlerNetworkInterfaces
 
     Serial.println("Setting up sx1262");
     // sx1262 loraInterface
@@ -39,7 +39,7 @@ void variantSetDefaultInterfaces()
     sx1262InterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
     // interface ID, interface pair
-    interfaceHandler.addInterface(4, interfaceHandler.createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
+    handlerNetworkInterfaces.addInterface(4, handlerNetworkInterfaces.createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
 
     Serial.println("Setting up wifi IF");
     // wifi interface
@@ -53,5 +53,5 @@ void variantSetDefaultInterfaces()
 
     udpInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
-    interfaceHandler.addInterface(7, interfaceHandler.createInterface("Wifi Interface", udpInterfaceConfig));
+    handlerNetworkInterfaces.addInterface(7, handlerNetworkInterfaces.createInterface("Wifi Interface", udpInterfaceConfig));
 }

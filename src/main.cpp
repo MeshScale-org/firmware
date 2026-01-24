@@ -8,13 +8,13 @@
 #include <mutex>
 
 // define managers/handlers
-systemManager_t &systemManager = systemManager_t::getInstance();
-reticulumManager_t &reticulumManager = reticulumManager_t::getInstance();
-hardwareManager_t &hardwareManager = hardwareManager_t::getInstance();
-clientManager_t &clientManager = clientManager_t::getInstance();
-graphicsManager_t &graphicsManager = graphicsManager_t::getInstance();
+managerSystem_t &managerSystem = managerSystem_t::getInstance();
+managerNetwork_t &managerNetwork = managerNetwork_t::getInstance();
+managerHardware_t &managerHardware = managerHardware_t::getInstance();
+managerClient_t &managerClient = managerClient_t::getInstance();
+managerUi_t &managerUi = managerUi_t::getInstance();
 
-interfaceHandler_t &interfaceHandler = interfaceHandler_t::getInstance();
+handlerNetworkInterfaces_t &handlerNetworkInterfaces = handlerNetworkInterfaces_t::getInstance();
 
 RNS::Destination externDestination = RNS::Destination(RNS::Type::NONE);
 
@@ -186,14 +186,14 @@ void setup()
 
   // register known interface with reticulum transport
   Serial.print("Registering interfaces with rns transport....\n");
-  interfaceHandler.registerIfsTransport();
+  handlerNetworkInterfaces.registerIfsTransport();
 
   // setup reticulum
   reticulum_setup();
 
   // print out interfaces setup by variant
   delay(100);
-  Serial.printf("################################\n%s\n################################\n", interfaceHandler.interfacesToString(true).c_str());
+  Serial.printf("################################\n%s\n################################\n", handlerNetworkInterfaces.interfacesToString(true).c_str());
   delay(500); // give print some time
 
   // reduce printouts after setup
@@ -201,11 +201,11 @@ void setup()
   // RNS::loglevel(RNS::LOG_TRACE);
 
   // create and register threads
-  scheduler::addThread(new thread("systemManager", systemManager));
-  scheduler::addThread(new thread("reticulumManager", reticulumManager));
-  scheduler::addThread(new thread("hardwareManager", hardwareManager));
-  scheduler::addThread(new thread("clientManager", clientManager));
-  scheduler::addThread(new thread("graphicsManager", graphicsManager));
+  scheduler::addThread(new thread("managerSystem", managerSystem));
+  scheduler::addThread(new thread("managerNetwork", managerNetwork));
+  scheduler::addThread(new thread("managerHardware", managerHardware));
+  scheduler::addThread(new thread("managerClient", managerClient));
+  scheduler::addThread(new thread("managerUi", managerUi));
 
   Serial.println("end of setup()");
   delay(200);

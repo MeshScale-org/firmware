@@ -4,31 +4,30 @@
 #include <queue>
 
 /*
-The hardware Manager, manages all device hardware (exluding interfaces and displays)
+The hardware Manager, manages all device hardware (exluding network interfaces and user interfaces)
 
 Jobs:
     Manage:
     sensors,
-    user input,
     I2C scan,
-    battery status
+    battery status,
     ...
 */
 
-class hardwareManager_t : public manager_base
+class managerHardware_t : public manager_base
 {
 
 public:
-    hardwareManager_t(hardwareManager_t &) = delete;
+    managerHardware_t(managerHardware_t &) = delete;
     // get singleton instance
-    inline static hardwareManager_t &getInstance()
+    inline static managerHardware_t &getInstance()
     {
-        static hardwareManager_t instance;
+        static managerHardware_t instance;
         return instance;
     }
 
 private:
-    hardwareManager_t() {};
+    managerHardware_t() {};
 
 public:
     unsigned long loop();

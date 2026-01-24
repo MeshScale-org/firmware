@@ -1,4 +1,4 @@
-#include "reticulumManager.h"
+#include "managerNetwork.h"
 #include "main.h"
 
 // We initialise two lists of strings to use as app_data
@@ -45,9 +45,9 @@ void send_packet()
     }
 }
 
-unsigned long reticulumManager_t::loop()
+unsigned long managerNetwork_t::loop()
 {
-    interfaceHandler.loop();
+    handlerNetworkInterfaces.loop();
     reticulum.loop();
 
     if (millis() - lastPacket > packetInterval)

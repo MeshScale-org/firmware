@@ -5,7 +5,7 @@
 #include "managedInterfaceImpl.h"
 
 // radio adapter base class
-#include "interfaces/radiolibInterfaceAdapters/radiolibInterfaceAdapter_base.h"
+#include "networkInterfaces/radiolibInterfaceAdapters/radiolibInterfaceAdapter_base.h"
 
 // radiolib
 #include <RadioLib.h>

@@ -1,14 +1,15 @@
 #pragma once
 #include <Arduino.h>
+#include "handler_base.h"
 #include <vector>
 #include <Reticulum.h>
 #include <RadioLib.h>
 #include "os/concurrency/SPIClassL.h"
 
-#include "interfaces/managedInterfaceImpl.h"
-#include "interfaces/radiolibInterfaceAdapters/radiolibInterfaceAdapter_base.h"
+#include "networkInterfaces/managedInterfaceImpl.h"
+#include "networkInterfaces/radiolibInterfaceAdapters/radiolibInterfaceAdapter_base.h"
 
-class interfaceHandler_t
+class handlerNetworkInterfaces_t : public handler_base_t
 {
 public:
     struct managedInterface_t
@@ -20,12 +21,12 @@ public:
 
     // singleton interfaces
 public:
-    interfaceHandler_t(interfaceHandler_t &) = delete;
+    handlerNetworkInterfaces_t(handlerNetworkInterfaces_t &) = delete;
 
     bool addInterface(uint8_t ifID, managedInterface_t *newInterface, bool autoStart = true);
     // return true for succesfull config update and radio start
     bool configureInterface(uint8_t interfaceIndex, managedInterfaceImpl_t::managedInterfaceConfig_t newConfig);
-    // gives overview of interfaces in interfaceHandler_t
+    // gives overview of interfaces in handlerNetworkInterfaces_t
     String interfacesToString(bool verbose = false);
     // register new interfaces to transport
     bool registerIfsTransport();
@@ -33,13 +34,13 @@ public:
     void loop();
 
 private:
-    interfaceHandler_t() {};
+    handlerNetworkInterfaces_t() {};
 
 public:
     // get singleton instance
-    inline static interfaceHandler_t &getInstance()
+    inline static handlerNetworkInterfaces_t &getInstance()
     {
-        static interfaceHandler_t instance;
+        static handlerNetworkInterfaces_t instance;
         return instance;
     }
 
