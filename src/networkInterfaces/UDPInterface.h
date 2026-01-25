@@ -34,15 +34,15 @@ public:
 	virtual ~UDPInterface();
 
 	// bool start(const char* wifi_ssid, const char* wifi_password, int port = DEFAULT_UDP_PORT, const char* local_host = nullptr);
-	virtual bool start();
-	virtual void stop();
-	virtual void loop();
+	bool start();
+	void stop();
+	void loop();
 
-	virtual inline std::string toString() const { return "UDPInterface[" /* + _name + "/" + _local_host + ":" + std::to_string(_local_port) + "]"*/; }
+	inline std::string toString() const { return "UDPInterface[" /* + _name + "/" + _local_host + ":" + std::to_string(_local_port) + "]"*/; }
 	// virtual inline std::string toString() const { return "UDPInterface[" + name() + "]"; }
 
 protected:
-	virtual void send_outgoing(const RNS::Bytes &data);
+	void send_outgoing(const RNS::Bytes &data);
 	void on_incoming(const RNS::Bytes &data);
 
 private:

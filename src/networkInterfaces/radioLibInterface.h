@@ -17,11 +17,11 @@ class radioLibInterface : public managedInterfaceImpl_t
 
 public:
 	radioLibInterface(std::string name, uint32_t irqPin, resourceLock &radioSpiL, radiolibInterfaceAdapter_base *radio);
-	virtual ~radioLibInterface();
+	~radioLibInterface();
 
-	virtual bool start();
-	virtual void stop();
-	virtual void loop();
+	bool start();
+	void stop();
+	void loop();
 
 	volatile bool sendDone = 0;
 	volatile bool receiveDone = 0;
@@ -30,7 +30,7 @@ public:
 	bool updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t newConfig);
 
 private:
-	virtual void send_outgoing(const RNS::Bytes &data);
+	void send_outgoing(const RNS::Bytes &data);
 	void on_incoming(const RNS::Bytes &data);
 
 private:

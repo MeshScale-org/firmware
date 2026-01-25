@@ -7,15 +7,6 @@
 
 #include <mutex>
 
-// define managers/handlers
-managerSystem_t &managerSystem = managerSystem_t::getInstance();
-managerNetwork_t &managerNetwork = managerNetwork_t::getInstance();
-managerHardware_t &managerHardware = managerHardware_t::getInstance();
-managerClient_t &managerClient = managerClient_t::getInstance();
-managerUi_t &managerUi = managerUi_t::getInstance();
-
-handlerNetworkInterfaces_t &handlerNetworkInterfaces = handlerNetworkInterfaces_t::getInstance();
-
 RNS::Destination externDestination = RNS::Destination(RNS::Type::NONE);
 
 // Test AnnounceHandler

@@ -1,7 +1,6 @@
 #pragma once
 #include "manager_base.h"
 #include "rumor.h"
-#include <queue>
 
 /*
 The hardware Manager, manages all device hardware (exluding network interfaces and user interfaces)
@@ -31,8 +30,6 @@ private:
 
 public:
     unsigned long loop();
-    void takeRumor(rumor_t newRumor) { rumorsIn.push(newRumor); };
-
-private:
-    std::queue<rumor_t> rumorsIn;
 };
+
+extern managerHardware_t &managerHardware;

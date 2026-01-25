@@ -47,7 +47,11 @@ void send_packet()
 
 unsigned long managerNetwork_t::loop()
 {
+    // lock for limited duration instead of whole scope (lock_guard). Reduce lock time and avoid deadlock
+    handlerNetworkInterfaces.lock();
     handlerNetworkInterfaces.loop();
+    handlerNetworkInterfaces.unlock();
+
     reticulum.loop();
 
     if (millis() - lastPacket > packetInterval)
@@ -65,3 +69,5 @@ unsigned long managerNetwork_t::loop()
 
     return reticulumInterval;
 };
+
+managerNetwork_t &managerNetwork = managerNetwork_t::getInstance();

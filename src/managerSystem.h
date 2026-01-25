@@ -1,7 +1,6 @@
 #pragma once
 #include "manager_base.h"
 #include "rumor.h"
-#include <queue>
 
 /*
 The main Manager, distributes rumors
@@ -31,8 +30,6 @@ private:
 
 public:
     unsigned long loop();
-    void takeRumor(rumor_t newRumor) { rumorsIn.push(newRumor); };
-
-private:
-    std::queue<rumor_t> rumorsIn;
 };
+
+extern managerSystem_t &managerSystem;

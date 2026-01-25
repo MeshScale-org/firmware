@@ -228,3 +228,5 @@ String handlerNetworkInterfaces_t::interfacesToString(bool verbose)
 
     return outString;
 };
+
+handlerNetworkInterfaces_t &handlerNetworkInterfaces = handlerNetworkInterfaces_t::getInstance();

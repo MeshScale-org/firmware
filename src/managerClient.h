@@ -28,8 +28,6 @@ private:
 
 public:
     unsigned long loop();
-    void takeRumor(rumor_t newRumor) { rumorsIn.push(newRumor); };
-
-private:
-    std::queue<rumor_t> rumorsIn;
 };
+
+extern managerClient_t &managerClient;

@@ -18,7 +18,7 @@ radioLibInterface::radioLibInterface(std::string name, uint32_t irqPin, resource
 	this->irqPin = irqPin;
 }
 
-/*virtual*/ radioLibInterface::~radioLibInterface()
+radioLibInterface::~radioLibInterface()
 {
 	stop();
 }
@@ -133,7 +133,7 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 	}
 }
 
-/*virtual*/ void radioLibInterface::send_outgoing(const Bytes &data)
+void radioLibInterface::send_outgoing(const Bytes &data)
 {
 
 	DEBUG(toString() + ".on_outgoing: data: " + data.toHex());
@@ -167,7 +167,7 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 	}
 }
 
-/*virtual*/ void radioLibInterface::on_incoming(const Bytes &data)
+void radioLibInterface::on_incoming(const Bytes &data)
 {
 	DEBUG(toString() + ".on_incoming: data: " + data.toHex());
 	// Pass received data on to transport

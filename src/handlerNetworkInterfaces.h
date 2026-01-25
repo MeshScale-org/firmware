@@ -59,3 +59,5 @@ public:
     // factory for UDP interface
     managedInterface_t *createInterface(std::string ifName, managedInterfaceImpl_t::managedInterfaceConfig_t ifConfig);
 };
+
+extern handlerNetworkInterfaces_t &handlerNetworkInterfaces;

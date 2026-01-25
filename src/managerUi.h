@@ -1,7 +1,6 @@
 #pragma once
 #include "manager_base.h"
 #include "rumor.h"
-#include <queue>
 
 /*
 The UI Manager, manages on-device interfaces(not network interfaces) to user like display and buttons
@@ -33,8 +32,6 @@ private:
 
 public:
     unsigned long loop();
-    void takeRumor(rumor_t newRumor) { rumorsIn.push(newRumor); };
-
-private:
-    std::queue<rumor_t> rumorsIn;
 };
+
+extern managerUi_t &managerUi;

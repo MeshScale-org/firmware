@@ -8,6 +8,7 @@ Handlers can be called by multiple managers and must inherit a resourceLock (han
 
 All other objects and classes should be kept dedicated to a single handler as much as possible.
 (e.g. all interface/radio classes are only called by handlerNetworkInterfaces)
+//TODO: check resource lock on interfaces because reticulum.loop() call interfaces directly instead of trough handlerNetworkInterfaces
 
 Objects where this is not possible must also inherit from resourceLock and should be locked before use
 (e.g. SPI, I2C, filesystem, ...)
