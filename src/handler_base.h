@@ -2,6 +2,4 @@
 
 class handler_base_t : public resourceLock
 {
-public:
-private:
 };

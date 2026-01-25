@@ -3,7 +3,7 @@
 
 #include "os/concurrency/SPIClassL.h"
 
-// TODO create proper namespace system
+// TODO: create proper namespace system
 // hardware limits of a radio on a specific device/version
 struct radioLimits_t
 {

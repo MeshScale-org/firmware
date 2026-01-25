@@ -12,7 +12,7 @@ public:
     void lock();
     void unlock();
 
-private:
+protected:
 #if USE_RTOS
     SemaphoreHandle_t mutex;
 #endif

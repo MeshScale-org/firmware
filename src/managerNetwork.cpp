@@ -47,10 +47,11 @@ void send_packet()
 
 unsigned long managerNetwork_t::loop()
 {
-    // lock for limited duration instead of whole scope (lock_guard). Reduce lock time and avoid deadlock
-    handlerNetworkInterfaces.lock();
+    // TODO: is this needed since Reticulum::loop() also calls interfaceImpl.loop()
+    // handlerNetworkInterfaces is the only handler that calls the networkInterface objects but should stay locked during reticulum.loop because this calls interfaceImplementations directly.
+    // not very clean, could be improved
+    std::lock_guard<resourceLock> lg(handlerNetworkInterfaces);
     handlerNetworkInterfaces.loop();
-    handlerNetworkInterfaces.unlock();
 
     reticulum.loop();
 

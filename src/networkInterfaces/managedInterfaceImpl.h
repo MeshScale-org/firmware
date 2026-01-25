@@ -1,6 +1,8 @@
 
 #pragma once
 #include <Reticulum.h>
+#include "os/concurrency/queueL.h"
+#include <mutex>
 
 class handlerNetworkInterfaces_t;
 
@@ -113,4 +115,25 @@ public:
     managedInterfaceImpl_t(std::string name) : RNS::InterfaceImpl(name.c_str()) {};
 
     virtual bool updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t rnsInterfaceDescription) = 0;
+
+protected:
+    void send_outgoing(const RNS::Bytes &data)
+    {
+        // locking queue because both handlerNetworkInterfaces and reticulum.loop() can call send_outgoing
+        std::lock_guard<queueL<RNS::Bytes>> lg(sendQueue);
+        sendQueue.push(data);
+    };
+
+    void on_incoming(const RNS::Bytes &data)
+    {
+        DEBUG(toString() + ".on_incoming: data: " + data.toHex());
+        // Pass received data on to transport
+        InterfaceImpl::handle_incoming(data);
+    };
+
+private:
+    virtual void transmitOutQueue() = 0;
+
+protected:
+    queueL<RNS::Bytes> sendQueue;
 };

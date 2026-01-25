@@ -26,12 +26,10 @@ public:
 	volatile bool sendDone = 0;
 	volatile bool receiveDone = 0;
 
-public:
 	bool updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t newConfig);
 
 private:
-	void send_outgoing(const RNS::Bytes &data);
-	void on_incoming(const RNS::Bytes &data);
+	void transmitOutQueue() override;
 
 private:
 	RNS::Bytes buffer;

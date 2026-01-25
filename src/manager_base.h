@@ -1,8 +1,6 @@
 #pragma once
 #include "rumor.h"
-#include "os/concurrency/resourceLock.h"
-#include <mutex>
-#include <queue>
+#include "os/concurrency/queueL.h"
 
 class manager_base
 {
@@ -14,11 +12,9 @@ public:
     virtual unsigned long loop() = 0;
     virtual void takeRumor(rumor_t newRumor)
     {
-        std::lock_guard<resourceLock> lg(rumorsInMutex);
         rumorsIn.push(newRumor);
     };
 
 protected:
-    resourceLock rumorsInMutex;
-    std::queue<rumor_t> rumorsIn;
+    queueL<rumor_t> rumorsIn;
 };

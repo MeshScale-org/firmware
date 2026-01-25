@@ -86,6 +86,8 @@ void radioLibInterface::loop()
 				radioAdapter->startReceive();
 			}
 		}
+
+		// add send pending out packages
 	}
 }
 
@@ -133,45 +135,39 @@ bool radioLibInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceCon
 	}
 }
 
-void radioLibInterface::send_outgoing(const Bytes &data)
+void radioLibInterface::transmitOutQueue()
 {
-
-	DEBUG(toString() + ".on_outgoing: data: " + data.toHex());
 	try
 	{
 		if (_online)
 		{
+			while (!sendQueue.empty())
+			{
+				//  Send packet
+				RNS::Bytes data = sendQueue.front();
+				DEBUG(toString() + ".on_outgoing: data: " + data.toHex());
+				TRACE("radioLibInterface: sending " + std::to_string(data.size()) + " bytes...");
 
-			TRACE("radioLibInterface: sending " + std::to_string(data.size()) + " bytes...");
-			//  Send packet
+				// uint8_t *header = 0;
+				//*header = (Cryptography::randomnum(256) & 0xF0);
 
-			// uint8_t *header = 0;
-			//*header = (Cryptography::randomnum(256) & 0xF0);
+				// radioAdapter->startTransmit(header, 1);
 
-			// radioAdapter->startTransmit(header, 1);
+				// CBA TODO add support for split packets
 
-			// CBA TODO add support for split packets
+				// add payload
+				radioAdapter->startTransmit(data.data(), data.size());
 
-			// add payload
-			radioAdapter->startTransmit(data.data(), data.size());
+				TRACE("radioLibInterface: sent bytes");
 
-			TRACE("radioLibInterface: sent bytes");
+				// Perform post-send housekeeping
+				InterfaceImpl::handle_outgoing(data);
+			}
 		}
-
-		// Perform post-send housekeeping
-		InterfaceImpl::handle_outgoing(data);
 	}
 	catch (std::exception &e)
 	{
 		ERROR("Could not transmit on " + toString() + ". The contained exception was: " + e.what());
 	}
 }
-
-void radioLibInterface::on_incoming(const Bytes &data)
-{
-	DEBUG(toString() + ".on_incoming: data: " + data.toHex());
-	// Pass received data on to transport
-	InterfaceImpl::handle_incoming(data);
-}
-
 #endif

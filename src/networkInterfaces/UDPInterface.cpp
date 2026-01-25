@@ -19,12 +19,12 @@ UDPInterface::UDPInterface(std::string name /*= "UDPInterface"*/) : managedInter
 	_HW_MTU = 1064;
 }
 
-/*virtual*/ UDPInterface::~UDPInterface()
+UDPInterface::~UDPInterface()
 {
 	stop();
 }
 
-/*virtual*/ bool UDPInterface::start()
+bool UDPInterface::start()
 {
 	const char *wifi_ssid = WIFI_SSID;
 	const char *wifi_password = WIFI_KEY;
@@ -185,7 +185,7 @@ UDPInterface::UDPInterface(std::string name /*= "UDPInterface"*/) : managedInter
 	return true;
 }
 
-/*virtual*/ void UDPInterface::stop()
+void UDPInterface::stop()
 {
 #ifdef ARDUINO
 #else
@@ -199,13 +199,13 @@ UDPInterface::UDPInterface(std::string name /*= "UDPInterface"*/) : managedInter
 	_online = false;
 }
 
-/*virtual*/ void UDPInterface::loop()
+void UDPInterface::loop()
 {
 
 	if (_online)
 	{
 		// Check for incoming packet
-#ifdef ARDUINO
+
 		udp.parsePacket();
 		size_t len = udp.read(_buffer.writable(Type::Reticulum::MTU), Type::Reticulum::MTU);
 		if (len > 0)
@@ -213,22 +213,6 @@ UDPInterface::UDPInterface(std::string name /*= "UDPInterface"*/) : managedInter
 			_buffer.resize(len);
 			on_incoming(_buffer);
 		}
-#else
-		size_t available = 0;
-		ioctl(_socket, FIONREAD, &available);
-		if (available > 0)
-		{
-			size_t len = read(_socket, _buffer.writable(available), available);
-			if (len > 0)
-			{
-				if (len < available)
-				{
-					_buffer.resize(len);
-				}
-				on_incoming(_buffer);
-			}
-		}
-#endif
 	}
 }
 
@@ -249,43 +233,31 @@ bool UDPInterface::updateConfig(managedInterfaceImpl_t::managedInterfaceConfig_t
 	}
 }
 
-/*virtual*/ void UDPInterface::send_outgoing(const Bytes &data)
+void UDPInterface::transmitOutQueue()
 {
-	DEBUG(toString() + ".on_outgoing: data: " + data.toHex());
 	try
 	{
 		if (_online)
 		{
-			// Send packet
-#ifdef ARDUINO
-			udp.beginPacket(_remote_host.c_str(), _remote_port);
-			udp.write(data.data(), data.size());
-			udp.endPacket();
-#else
-			TRACE("Sending UDP packet to " + std::string(_remote_host) + ":" + std::to_string(_remote_port));
-			sockaddr_in sock_addr;
-			sock_addr.sin_family = AF_INET;
-			sock_addr.sin_addr.s_addr = _remote_address;
-			sock_addr.sin_port = htons(_remote_port);
-			int sent = sendto(_socket, data.data(), data.size(), 0, (struct sockaddr *)&sock_addr, sizeof(sock_addr));
-			TRACE("Sent " + std::to_string(sent) + " bytes to " + std::string(_remote_host) + ":" + std::to_string(_remote_port));
-#endif
-		}
+			while (!sendQueue.empty())
+			{
+				RNS::Bytes data = sendQueue.front();
+				DEBUG(toString() + ".on_outgoing: data: " + data.toHex());
+				// Send packet
+				udp.beginPacket(_remote_host.c_str(), _remote_port);
+				udp.write(data.data(), data.size());
+				udp.endPacket();
+				sendQueue.pop();
 
-		// Perform post-send housekeeping
-		InterfaceImpl::handle_outgoing(data);
+				// Perform post-send housekeeping
+				InterfaceImpl::handle_outgoing(data);
+			}
+		}
 	}
 	catch (std::exception &e)
 	{
 		ERROR("Could not transmit on " + toString() + ". The contained exception was: " + e.what());
 	}
-}
-
-void UDPInterface::on_incoming(const Bytes &data)
-{
-	DEBUG(toString() + ".on_incoming: data: " + data.toHex());
-	// Pass received data on to transport
-	InterfaceImpl::handle_incoming(data);
 }
 
 #endif // defined ESP32
