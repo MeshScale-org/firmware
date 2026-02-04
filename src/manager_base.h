@@ -1,5 +1,5 @@
 #pragma once
-#include "rumor.h"
+#include "protocolBuffers/generated/messageTest.pb.h"
 #include "os/concurrency/queueL.h"
 
 class manager_base
@@ -10,11 +10,12 @@ public:
 public:
     // return requested timeTilNextRun
     virtual unsigned long loop() = 0;
-    virtual void takeRumor(rumor_t newRumor)
+    virtual void takeRumor(meshScale_PbMessage newRumor)
     {
         rumorsIn.push(newRumor);
+        Serial.printf("manager_base: added rewRumor\n");
     };
 
 protected:
-    queueL<rumor_t> rumorsIn;
+    queueL<meshScale_PbMessage> rumorsIn;
 };

@@ -1,6 +1,5 @@
 #pragma once
 #include "manager_base.h"
-#include "rumor.h"
 
 /*
 The UI Manager, manages on-device interfaces(not network interfaces) to user like display and buttons

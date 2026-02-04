@@ -4,15 +4,6 @@
 // We initialise two lists of strings to use as app_data
 const char *noble_gases[] = {"Helium", "Neon", "Argon", "Krypton", "Xenon", "Radon", "Oganesson"};
 
-void toggleLed()
-{
-    static bool ledState = 0;
-    ledState = !ledState;
-    digitalWrite(LED_BUILTIN, ledState);
-}
-
-unsigned long lastAnnounce = 0;
-unsigned long announceInterval = 120000;
 void reticulum_announce()
 {
     if (destination)
@@ -26,8 +17,6 @@ void reticulum_announce()
     }
 }
 
-unsigned long lastPacket = 0;
-unsigned long packetInterval = 10000;
 void send_packet()
 {
     if (externDestination)
@@ -47,26 +36,42 @@ void send_packet()
 
 unsigned long managerNetwork_t::loop()
 {
+    while (!rumorsIn.empty())
+    {
+        meshScale_PbMessage incoming = rumorsIn.front();
+        if (incoming.has_timestamp)
+        {
+            Serial.printf("managerNetwork_t: received rumor with timestamp of %d ms ago\n", millis() - incoming.timestamp);
+        }
+        if (incoming.which_payload == meshScale_PbMessage_command_from_client_tag)
+        {
+            if (incoming.payload.command_from_client.which_command == meshScale_CommandFromClientM_send_text_tag)
+            {
+                Serial.printf("managerNetwork_t: received command from client to send %s to destination nr %d\n", incoming.payload.command_from_client.command.send_text.send_string, incoming.payload.command_from_client.command.send_text.destination_nr);
+            }
+            else if (incoming.payload.command_from_client.which_command == meshScale_CommandFromClientM_send_announce_tag)
+            {
+                Serial.printf("managerNetwork_t: received command from client to announce destination nr %d\n", incoming.payload.command_from_client.command.send_announce.destination_nr);
+            }
+            else
+            {
+                Serial.println("unknown command from client type");
+            }
+        }
+        else
+        {
+            Serial.println("unknown payload type");
+        }
+
+        rumorsIn.pop();
+    }
+
     // TODO: is this needed since Reticulum::loop() also calls interfaceImpl.loop()
     // handlerNetworkInterfaces is the only handler that calls the networkInterface objects but should stay locked during reticulum.loop because this calls interfaceImplementations directly.
     // not very clean, could be improved
     std::lock_guard<resourceLock> lg(handlerNetworkInterfaces);
     handlerNetworkInterfaces.loop();
-
     reticulum.loop();
-
-    if (millis() - lastPacket > packetInterval)
-    {
-        toggleLed();
-        send_packet();
-        lastPacket = millis();
-    }
-
-    if (millis() - lastAnnounce > announceInterval)
-    {
-        reticulum_announce();
-        lastAnnounce = millis();
-    }
 
     return reticulumInterval;
 };

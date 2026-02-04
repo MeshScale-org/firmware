@@ -1,6 +1,5 @@
 #pragma once
 #include "manager_base.h"
-#include "rumor.h"
 #include <queue>
 
 /*
@@ -28,6 +27,9 @@ private:
 
 public:
     unsigned long loop();
+
+private:
+    const unsigned long clientInterval = 500;
 };
 
 extern managerClient_t &managerClient;

@@ -1,6 +1,5 @@
 #pragma once
 #include "manager_base.h"
-#include "rumor.h"
 
 /*
 The reticulum Manager
@@ -29,7 +28,7 @@ public:
     unsigned long loop();
 
 private:
-    const unsigned long reticulumInterval = 1500;
+    const unsigned long reticulumInterval = 50;
 };
 
 extern managerNetwork_t &managerNetwork;

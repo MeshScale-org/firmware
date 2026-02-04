@@ -1,6 +1,5 @@
 #pragma once
 #include "manager_base.h"
-#include "rumor.h"
 
 /*
 The hardware Manager, manages all device hardware (exluding network interfaces and user interfaces)

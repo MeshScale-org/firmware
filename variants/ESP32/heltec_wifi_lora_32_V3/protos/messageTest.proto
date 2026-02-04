@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package meshScale;
+
+message SendTextM
+{
+  string send_string    = 1;
+  sint32 destination_nr = 2;
+}
+
+message SendAnnounceM
+{
+  sint32 destination_nr = 1;
+}
+
+message CommandFromClientM {
+  oneof command
+  {
+    SendTextM     send_text     = 1;
+    SendAnnounceM send_announce = 2;
+  }
+}
+
+message TelemetryM
+{
+  sint32 battery_level = 1;
+}
+
+message PbMessage {
+  optional fixed32 timestamp = 1;
+  oneof payload {
+    CommandFromClientM command_from_client = 2;
+    TelemetryM         telemetry           = 3;
+  };
+}

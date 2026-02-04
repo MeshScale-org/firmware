@@ -1,6 +1,5 @@
 #pragma once
 #include "manager_base.h"
-#include "rumor.h"
 
 /*
 The main Manager, distributes rumors
