@@ -36,34 +36,28 @@ void send_packet()
 
 unsigned long managerNetwork_t::loop()
 {
-    while (!rumorsIn.empty())
+    while (!pbMessagesIn.empty())
     {
-        meshScale_PbMessage incoming = rumorsIn.front();
-        if (incoming.has_timestamp)
+        meshScale_PbMessage incoming = pbMessagesIn.front();
+        if (incoming.has_timestamp_ms)
         {
-            Serial.printf("managerNetwork_t: received rumor with timestamp of %d ms ago\n", millis() - incoming.timestamp);
+            Serial.printf("managerNetwork_t: received pbMessage with timestamp of %d ms ago\n", millis() - incoming.timestamp_ms);
         }
-        if (incoming.which_payload == meshScale_PbMessage_command_from_client_tag)
+        if (incoming.which_content == meshScale_PbMessage_userchat_tag)
         {
-            if (incoming.payload.command_from_client.which_command == meshScale_CommandFromClientM_send_text_tag)
-            {
-                Serial.printf("managerNetwork_t: received command from client to send %s to destination nr %d\n", incoming.payload.command_from_client.command.send_text.send_string, incoming.payload.command_from_client.command.send_text.destination_nr);
-            }
-            else if (incoming.payload.command_from_client.which_command == meshScale_CommandFromClientM_send_announce_tag)
-            {
-                Serial.printf("managerNetwork_t: received command from client to announce destination nr %d\n", incoming.payload.command_from_client.command.send_announce.destination_nr);
-            }
-            else
-            {
-                Serial.println("unknown command from client type");
-            }
+
+            Serial.printf("managerNetwork_t: received pbMessage to send %s to destination %d\n", incoming.content.userchat.text_string, incoming.content.userchat.destination_hash);
+        }
+        else if (incoming.which_content == meshScale_PbMessage_announce_tag)
+        {
+            Serial.printf("managerNetwork_t: received pbMessage to announce destination %d\n", incoming.content.announce.destination_hash);
         }
         else
         {
-            Serial.println("unknown payload type");
+            Serial.println("unknown pbMessage content type, removing");
         }
 
-        rumorsIn.pop();
+        pbMessagesIn.pop();
     }
 
     // TODO: is this needed since Reticulum::loop() also calls interfaceImpl.loop()

@@ -17,24 +17,26 @@ if not exist "%NANOPB_GENERATOR_DIR%" (
     exit /b
 )
 
+if not exist "%OUT_DIR%" (
+    mkdir "%OUT_DIR%"
+)
+
+echo removing current generated files
+del "%OUT_DIR%"\* /Q
+
 
 echo Generating nanopb files...
 echo Proto directory: %PROTO_DIR%
 echo Output directory: %OUT_DIR%
 echo.
 
-if not exist "%OUT_DIR%" (
-    mkdir "%OUT_DIR%"
-)
-
 for %%f in ("%PROTO_DIR%\*.proto") do (
     echo Processing %%~nxf
     python "%NANOPB_GENERATOR_DIR%\generator\nanopb_generator.py" ^
         --proto-path "%PROTO_DIR%" ^
         --output-dir "%OUT_DIR%" ^
-        "%%f"
+        "%%f" 
 )
-
 
 REM echo.
 REM echo Updating protocolBuffers_includes.h...

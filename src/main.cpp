@@ -9,7 +9,8 @@
 
 RNS::Destination externDestination = RNS::Destination(RNS::Type::NONE);
 
-// Test AnnounceHandler
+// TODO: move to network manager
+//  Test AnnounceHandler
 class ExampleAnnounceHandler : public RNS::AnnounceHandler
 {
 public:
@@ -34,7 +35,8 @@ public:
   }
 };
 
-// Test packet receive callback
+// TODO: move to network manager
+//  Test packet receive callback
 void onPacket(const RNS::Bytes &data, const RNS::Packet &packet)
 {
   Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -48,7 +50,8 @@ void onPacket(const RNS::Bytes &data, const RNS::Packet &packet)
   TRACE("Test recv_packet: " + newPack.debugString());
 }
 
-// Ping packet receive callback
+// TODO: move to network manager
+//  Ping packet receive callback
 void onPingPacket(const RNS::Bytes &data, const RNS::Packet &packet)
 {
   Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");

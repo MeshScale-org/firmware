@@ -2,10 +2,10 @@
 #include "manager_base.h"
 
 /*
-The main Manager, distributes rumors
+The main Manager, distributes pbMessages
 
 Jobs:
-    Spreading rumors
+    Spreading pbMessages
     Keep track of time
     Power saving/management
     Software watchdog, check if other managers/threads are working properly
