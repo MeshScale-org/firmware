@@ -1,3 +1,6 @@
 [submodule "protocol-buffers"]
 	path = protocol-buffers
-	url = https://github.com/meshScale/protocol-buffers
+	url = https://github.com/Woutvstk/protocol-buffers.git
+[submodule "microReticulum"]
+	path = microReticulum
+	url = https://github.com/Woutvstk/microReticulum.git
