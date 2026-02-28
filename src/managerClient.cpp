@@ -36,7 +36,6 @@ unsigned long managerClient_t::loop()
 
     if (millis() - lastAnnounce > announceInterval)
     {
-
         // send announce command to network manager
         meshScale_PbMessage newMessage = meshScale_PbMessage_init_zero;
         newMessage.has_timestamp_ms = true;

@@ -9,68 +9,11 @@
 
 RNS::Destination externDestination = RNS::Destination(RNS::Type::NONE);
 
-// TODO: move to network manager
-//  Test AnnounceHandler
-class ExampleAnnounceHandler : public RNS::AnnounceHandler
-{
-public:
-  ExampleAnnounceHandler(const char *aspect_filter = nullptr) : AnnounceHandler(aspect_filter) {}
-  virtual ~ExampleAnnounceHandler() {}
-  virtual void received_announce(const RNS::Bytes &destination_hash, const RNS::Identity &announced_identity, const RNS::Bytes &app_data)
-  {
-    Serial.println("Setting external destination.....");
-    externDestination = RNS::Destination(announced_identity, RNS::Type::Destination::IN, RNS::Type::Destination::SINGLE, destination_hash);
-    Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    Serial.printf("ExampleAnnounceHandler: destination hash: %d\n", destination_hash.toHex());
-    if (announced_identity)
-    {
-      Serial.printf("ExampleAnnounceHandler: announced identity hash: %d\n", announced_identity.hash().toHex());
-      Serial.printf("ExampleAnnounceHandler: announced identity app data: %d\n", announced_identity.app_data().toHex());
-    }
-    if (app_data)
-    {
-      Serial.printf("ExampleAnnounceHandler: app data text: %s\n", app_data.toString());
-    }
-    Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  }
-};
-
-// TODO: move to network manager
-//  Test packet receive callback
-void onPacket(const RNS::Bytes &data, const RNS::Packet &packet)
-{
-  Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  Serial.printf("onPacket: data: %d\n", data.toHex());
-  Serial.printf("onPacket: text: %s\n", data.toString());
-  TRACE("onPacket: " + packet.debugString());
-  Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  RNS::Packet newPack(packet);
-  newPack.unpack();
-
-  TRACE("Test recv_packet: " + newPack.debugString());
-}
-
-// TODO: move to network manager
-//  Ping packet receive callback
-void onPingPacket(const RNS::Bytes &data, const RNS::Packet &packet)
-{
-  Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  Serial.printf("onPingPacket: data: %d\n", data.toHex());
-  Serial.printf("onPingPacket: text: %s\n", data.toString());
-  TRACE("onPingPacket: " + packet.debugString());
-  Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-}
-
 RNS::Reticulum reticulum({RNS::Type::NONE});
 RNS::FileSystem filesystem(RNS::Type::NONE);
 RNS::Identity identity({RNS::Type::NONE});
-RNS::Destination destination({RNS::Type::NONE});
 
 fileSystem *filesystem_impl = nullptr;
-
-// ExampleAnnounceHandler announce_handler((const char*)"example_utilities.announcesample.fruits");
-// RNS::HAnnounceHandler announce_handler(new ExampleAnnounceHandler("example_utilities.announcesample.fruits"));
-RNS::HAnnounceHandler announce_handler(new ExampleAnnounceHandler());
 
 void reticulum_setup()
 {
@@ -91,41 +34,6 @@ void reticulum_setup()
     reticulum.start();
 
     Serial.println("Creating Identity instance...");
-
-    identity = RNS::Identity(false);
-    RNS::Bytes prv_bytes;
-
-    // static keys for testing
-    // should be created/loaded from memory
-
-#ifdef ESP32
-    prv_bytes.assignHex("78E7D93E28D55871608FF13329A226CABC3903A357388A035B360162FF6321570B092E0583772AB80BC425F99791DF5CA2CA0A985FF0415DAB419BBC64DDFAE8");
-#else
-    prv_bytes.assignHex("E0D43398EDC974EBA9F4A83463691A08F4D306D4E56BA6B275B8690A2FBD9852E9EBE7C03BC45CAEC9EF8E78C830037210BFB9986F6CA2DEE2B5C28D7B4DE6B0");
-#endif
-
-    identity.load_private_key(prv_bytes);
-
-    Serial.println("Creating Destination instance...");
-    destination = RNS::Destination(identity, RNS::Type::Destination::IN, RNS::Type::Destination::SINGLE, "lxmf", "delivery");
-
-    // Register DATA packet callback
-    Serial.println("Registering packet callback with Destination...");
-    destination.set_packet_callback(onPacket);
-    destination.set_proof_strategy(RNS::Type::Destination::PROVE_ALL);
-
-    {
-      // Register PING packet callback
-      Serial.println("Creating PING Destination instance...");
-      RNS::Destination ping_destination(identity, RNS::Type::Destination::IN, RNS::Type::Destination::SINGLE, "example_utilities", "echo.request");
-
-      Serial.println("Registering packet callback with PING Destination...");
-      ping_destination.set_packet_callback(onPingPacket);
-      ping_destination.set_proof_strategy(RNS::Type::Destination::PROVE_ALL);
-    }
-
-    Serial.println("Registering announce handler with Transport...");
-    RNS::Transport::register_announce_handler(announce_handler);
 
 #if defined(RETICULUM_PACKET_TEST)
     // test data send packet
