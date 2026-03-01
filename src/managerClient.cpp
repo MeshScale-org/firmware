@@ -20,6 +20,7 @@ unsigned long managerClient_t::loop()
 {
     if (millis() - lastPacket > packetInterval)
     {
+        /*
         toggleLed();
         // send packet command to network manager
         meshScale_PbMessage newMessage = meshScale_PbMessage_init_zero;
@@ -31,6 +32,7 @@ unsigned long managerClient_t::loop()
         // newMessage.content.userchat.destination_hash = ;
         strcpy(newMessage.content.userchat.text_string, "MESSAGE12345");
         managerNetwork.takePbMessage(newMessage);
+        */
         lastPacket = millis();
     }
 
@@ -50,5 +52,4 @@ unsigned long managerClient_t::loop()
     }
     return clientInterval;
 }
-
 managerClient_t &managerClient = managerClient_t::getInstance();

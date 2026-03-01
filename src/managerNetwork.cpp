@@ -45,8 +45,6 @@ void onPacket(const RNS::Bytes &data, const RNS::Packet &packet)
     TRACE("Test recv_packet: " + newPack.debugString());
 }
 
-// ExampleAnnounceHandler announce_handler((const char*)"example_utilities.announcesample.fruits");
-// RNS::HAnnounceHandler announce_handler(new ExampleAnnounceHandler("example_utilities.announcesample.fruits"));
 RNS::HAnnounceHandler announce_handler(new ExampleAnnounceHandler());
 
 void reticulum_announce()
@@ -54,10 +52,6 @@ void reticulum_announce()
     if (myDestination)
     {
         Serial.printf("Announcing destination...\n");
-        // destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]));
-        //  test path
-        // destination.announce(RNS::bytesFromString(fruits[RNS::Cryptography::randomnum() % 7]), true, nullptr, RNS::bytesFromString("test_tag"));
-        //  test packet send
         myDestination.announce(RNS::bytesFromString(noble_gases[RNS::Cryptography::randomnum() % 7]));
     }
     else
@@ -96,6 +90,7 @@ unsigned long managerNetwork_t::loop()
 
         case meshScale_PbMessage_announce_tag:
             Serial.printf("managerNetwork_t: received pbMessage to announce destination %d\n", incoming.content.announce.destination_hash);
+            reticulum_announce();
             break;
 
         default:

@@ -6,7 +6,7 @@
 The main Manager, distributes pbMessages
 
 Jobs:
-    manage our identity and dstination
+    Manage identity if local
     Spreading pbMessages
     Keep track of time
     Power saving/management
