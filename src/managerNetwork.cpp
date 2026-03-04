@@ -84,13 +84,19 @@ unsigned long managerNetwork_t::loop()
         meshScale_PbMessage incoming = pbMessagesIn.front();
         switch (incoming.which_content)
         {
-        case meshScale_PbMessage_userchat_tag:
-            Serial.printf("managerNetwork_t: received pbMessage to send %s to destination %d\n", incoming.content.userchat.text_string, incoming.content.userchat.destination_hash);
+        case meshScale_PbMessage_chat_action_tag:
+            if (incoming.content.chat_action.which_action == meshScale_SendChat_chat_tag)
+            {
+                Serial.printf("managerNetwork_t: received pbMessage to send %s to destination %d\n", incoming.content.chat_action.action.send_chat.chat.text_string, incoming.content.chat_action.action.send_chat.destination_hash);
+            }
             break;
 
-        case meshScale_PbMessage_announce_tag:
-            Serial.printf("managerNetwork_t: received pbMessage to announce destination %d\n", incoming.content.announce.destination_hash);
-            reticulum_announce();
+        case meshScale_PbMessage_announce_action_tag:
+            if (incoming.content.announce_action.which_action == meshScale_AnnounceAction_single_announce_tag)
+            {
+                Serial.printf("managerNetwork_t: received pbMessage to announce my destination\n");
+                reticulum_announce();
+            }
             break;
 
         default:

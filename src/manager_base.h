@@ -8,8 +8,11 @@ public:
     manager_base() {};
 
 public:
+    // setup can be implemented, all setups are run by scheduler before loop threads are created
+    virtual void setup() {};
     // return requested timeTilNextRun
     virtual unsigned long loop() = 0;
+    // All managers have a message queue
     virtual void takePbMessage(meshScale_PbMessage newPbMessage)
     {
         pbMessagesIn.push(newPbMessage);

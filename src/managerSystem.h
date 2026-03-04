@@ -26,14 +26,17 @@ public:
         return instance;
     }
 
+    // class and thread related
 private:
     managerSystem_t() {};
+    const unsigned long systemInterval = 25;
 
 public:
     unsigned long loop();
 
+    // Jobs related
 private:
-    const unsigned long systemInterval = 25;
+    RNS::Bytes prv_bytes;
 };
 
 extern managerSystem_t &managerSystem;
