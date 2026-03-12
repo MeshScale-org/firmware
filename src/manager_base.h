@@ -1,6 +1,7 @@
 #pragma once
 #include "protocolBuffers/generated/PbMessage.pb.h"
 #include "os/concurrency/queueL.h"
+#include <mutex>
 
 class manager_base
 {

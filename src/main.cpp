@@ -95,7 +95,8 @@ void setup()
 
   // print out interfaces setup by variant
   delay(100);
-  Serial.printf("################################\n%s\n################################\n", handlerNetworkInterfaces.interfacesToString(true).c_str());
+  // some gibberish printed after the %s for some reason (on nrf52)
+  Serial.printf("################################\n %s \n################################\n", handlerNetworkInterfaces.interfacesToString(true).c_str());
   delay(500); // give print some time
 
   // reduce printouts after setup
@@ -103,6 +104,7 @@ void setup()
   // RNS::loglevel(RNS::LOG_TRACE);
 
   // create and register threads
+  Serial.printf("Now creating threads.....\n");
   scheduler::addThread(new thread("managerSystem", managerSystem));
   scheduler::addThread(new thread("managerNetwork", managerNetwork));
   scheduler::addThread(new thread("managerHardware", managerHardware));
