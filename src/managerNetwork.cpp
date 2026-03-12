@@ -3,36 +3,11 @@
 
 // We initialise two lists of strings to use as app_data
 const char *noble_gases[] = {"Helium", "Neon", "Argon", "Krypton", "Xenon", "Radon", "Oganesson"};
-// init myDestination
-RNS::Destination myDestination({RNS::Type::NONE});
-
-//  Test AnnounceHandler
-class ExampleAnnounceHandler : public RNS::AnnounceHandler
-{
-public:
-    ExampleAnnounceHandler(const char *aspect_filter = nullptr) : AnnounceHandler(aspect_filter) {}
-    virtual ~ExampleAnnounceHandler() {}
-    virtual void received_announce(const RNS::Bytes &destination_hash, const RNS::Identity &announced_identity, const RNS::Bytes &app_data)
-    {
-        Serial.println("Setting external destination.....");
-        externDestination = RNS::Destination(announced_identity, RNS::Type::Destination::IN, RNS::Type::Destination::SINGLE, destination_hash);
-        Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        Serial.printf("ExampleAnnounceHandler: destination hash: %d\n", destination_hash.toHex());
-        if (announced_identity)
-        {
-            Serial.printf("ExampleAnnounceHandler: announced identity hash: %d\n", announced_identity.hash().toHex());
-            Serial.printf("ExampleAnnounceHandler: announced identity app data: %d\n", announced_identity.app_data().toHex());
-        }
-        if (app_data)
-        {
-            Serial.printf("ExampleAnnounceHandler: app data text: %s\n", app_data.toString());
-        }
-        Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    }
-};
+// init userDestination
+// RNS::Destination userDestination({RNS::Type::NONE});
 
 //  Test packet receive callback
-void onPacket(const RNS::Bytes &data, const RNS::Packet &packet)
+void managerNetwork_t::onPacket(const RNS::Bytes &data, const RNS::Packet &packet)
 {
     Serial.printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     Serial.printf("onPacket: data: %d\n", data.toHex());
@@ -45,14 +20,14 @@ void onPacket(const RNS::Bytes &data, const RNS::Packet &packet)
     TRACE("Test recv_packet: " + newPack.debugString());
 }
 
-RNS::HAnnounceHandler announce_handler(new ExampleAnnounceHandler());
+// RNS::HAnnounceHandler announce_handler(new managerNetwork_t::announceHandlerClass());
 
-void reticulum_announce()
+void managerNetwork_t::reticulum_announce()
 {
-    if (myDestination)
+    if (userDestination)
     {
         Serial.printf("Announcing destination...\n");
-        myDestination.announce(RNS::bytesFromString(noble_gases[RNS::Cryptography::randomnum() % 7]));
+        userDestination.announce(RNS::bytesFromString(noble_gases[RNS::Cryptography::randomnum() % 7]));
     }
     else
     {
@@ -60,7 +35,7 @@ void reticulum_announce()
     }
 }
 
-void send_packet()
+void managerNetwork_t::send_packet()
 {
     if (externDestination)
     {
@@ -82,28 +57,46 @@ unsigned long managerNetwork_t::loop()
     while (!pbMessagesIn.empty())
     {
         meshScale_PbMessage incoming = pbMessagesIn.front();
-        switch (incoming.which_content)
+        // TODO: give this more oversight and declutter the code by splitting things up in inline functions
+        // if PbMessage == instruction -> auto &instruction = incoming.instruction; handleInstruction(instruction)
+        // Only handle pbmessage.instruction.execReq messages
+        if (incoming.which_content == meshScale_PbMessage_instruction_tag && incoming.instruction.which_instruction == meshScale_Instruction_exec_req_tag && incoming.instruction.exec_req.has_command)
         {
-        case meshScale_PbMessage_chat_action_tag:
-            if (incoming.content.chat_action.which_action == meshScale_SendChat_chat_tag)
+            // execReq's we want to handle
+            switch (incoming.instruction.exec_req.command.which_proto_module)
             {
-                Serial.printf("managerNetwork_t: received pbMessage to send %s to destination %d\n", incoming.content.chat_action.action.send_chat.chat.text_string, incoming.content.chat_action.action.send_chat.destination_hash);
-            }
-            break;
+            case meshScale_Instruction_Command_chat_commands_tag:
+                if (incoming.instruction.exec_req.command.chat_commands.which_command == meshScale_Chat_ChatCommands_send_chat_tag && incoming.instruction.exec_req.command.chat_commands.send_chat.has_destination_hash)
+                {
+                    Serial.printf("managerNetwork_t: received send chat command to send %s to destination %d\n",
+                                  incoming.instruction.exec_req.command.chat_commands.send_chat.text_string, incoming.instruction.exec_req.command.chat_commands.send_chat.destination_hash);
+                }
+                else
+                {
+                    Serial.printf("managerNetwork_t: error handling send chat command\n");
+                }
+                break;
 
-        case meshScale_PbMessage_announce_action_tag:
-            if (incoming.content.announce_action.which_action == meshScale_AnnounceAction_single_announce_tag)
-            {
-                Serial.printf("managerNetwork_t: received pbMessage to announce my destination\n");
-                reticulum_announce();
-            }
-            break;
+            case meshScale_Instruction_Command_announce_commands_tag:
+                if (incoming.instruction.exec_req.command.announce_commands.which_command == meshScale_Announce_AnnounceCommands_do_announce_command_tag)
+                {
+                    Serial.printf("managerNetwork_t: received pbMessage to announce my destination\n");
+                    reticulum_announce();
+                }
+                break;
 
-        default:
-            Serial.println("[managerNetwork_t::loop] unknown pbMessage content type, removing");
-            break;
+            // unknown instruction type
+            default:
+                Serial.printf("[managerNetwork_t::loop] unhandled Instruction.execReq type: %d", incoming.instruction.exec_req.command.which_proto_module);
+                break;
+            }
+        }
+        else
+        {
+            Serial.printf("[managerNetwork_t::loop] incoming PbMessage that is not instruction.execReq of unknown type\n");
         }
 
+        // always remove the handled message
         pbMessagesIn.pop();
     }
 

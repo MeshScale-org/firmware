@@ -24,22 +24,18 @@ unsigned long managerClient_t::loop()
         toggleLed();
         // send packet command to network manager
         meshScale_PbMessage newMessage = meshScale_PbMessage_init_zero;
-        newMessage.has_timestamp_ms = true;
-        newMessage.timestamp_ms = millis();
-        newMessage.has_local_source = true;
-        newMessage.local_source = meshScale_Source_MANAGER_CLIENT;
-        newMessage.which_content = meshScale_PbMessage_chat_action_tag;
-        newMessage.content.chat_action.which_action = meshScale_SendChat_chat_tag;
-        /*uint8_t dest[16] = {
-            1, 2, 3, 4, 5, 6,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        newMessage.content.chat_action.action.send_chat.destination_hash = dest;*/
-        /*byte data[] = {
-            1, 2, 3, 4, 5, 6,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0};*/
+        newMessage.has_source = true;
+        newMessage.source.which_source = meshScale_Source_local_source_tag;
+        newMessage.source.local_source = meshScale_Source_LocalSource_MANAGER_CLIENT;
+        newMessage.which_content = meshScale_PbMessage_instruction_tag;
+        newMessage.instruction.which_instruction = meshScale_Instruction_exec_req_tag;
+        newMessage.instruction.exec_req.has_command = true;
+        newMessage.instruction.exec_req.command.chat_commands.which_command = meshScale_Chat_ChatCommands_send_chat_tag;
+
         std::string dest = "someDestination"; // should be 16 byte hash
-        memcpy(newMessage.content.chat_action.action.send_chat.destination_hash, dest.data(), 16);
-        strcpy(newMessage.content.chat_action.action.send_chat.chat.text_string, "MESSAGE12345");
+        newMessage.instruction.exec_req.command.chat_commands.send_chat.has_destination_hash = true;
+        memcpy(newMessage.instruction.exec_req.command.chat_commands.send_chat.destination_hash.hash, dest.data(), 16);
+        strcpy(newMessage.instruction.exec_req.command.chat_commands.send_chat.text_string, "MESSAGE12345");
         managerNetwork.takePbMessage(newMessage);
 
         lastPacket = millis();
@@ -49,12 +45,13 @@ unsigned long managerClient_t::loop()
     {
         // send announce command to network manager
         meshScale_PbMessage newMessage = meshScale_PbMessage_init_zero;
-        newMessage.has_timestamp_ms = true;
-        newMessage.timestamp_ms = millis();
-        newMessage.has_local_source = true;
-        newMessage.local_source = meshScale_Source_MANAGER_CLIENT;
-        newMessage.which_content = meshScale_PbMessage_announce_action_tag;
-        newMessage.content.announce_action.which_action = meshScale_AnnounceAction_single_announce_tag; // actual announce_action.action is not set because it will not be read
+        newMessage.has_source = true;
+        newMessage.source.which_source = meshScale_Source_local_source_tag;
+        newMessage.source.local_source = meshScale_Source_LocalSource_MANAGER_CLIENT;
+        newMessage.which_content = meshScale_PbMessage_instruction_tag;
+        newMessage.instruction.which_instruction = meshScale_Instruction_exec_req_tag;
+        newMessage.instruction.exec_req.has_command = true;
+        newMessage.instruction.exec_req.command.announce_commands.which_command = meshScale_Announce_AnnounceCommands_do_announce_command_tag;
         managerNetwork.takePbMessage(newMessage);
 
         lastAnnounce = millis();
