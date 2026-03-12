@@ -30,6 +30,7 @@ unsigned long managerClient_t::loop()
         newMessage.which_content = meshScale_PbMessage_instruction_tag;
         newMessage.instruction.which_instruction = meshScale_Instruction_exec_req_tag;
         newMessage.instruction.exec_req.has_command = true;
+        newMessage.instruction.exec_req.command.which_proto_module = meshScale_Instruction_Command_chat_commands_tag;
         newMessage.instruction.exec_req.command.chat_commands.which_command = meshScale_Chat_ChatCommands_send_chat_tag;
 
         std::string dest = "someDestination"; // should be 16 byte hash
@@ -51,6 +52,7 @@ unsigned long managerClient_t::loop()
         newMessage.which_content = meshScale_PbMessage_instruction_tag;
         newMessage.instruction.which_instruction = meshScale_Instruction_exec_req_tag;
         newMessage.instruction.exec_req.has_command = true;
+        newMessage.instruction.exec_req.command.which_proto_module = meshScale_Instruction_Command_announce_commands_tag;
         newMessage.instruction.exec_req.command.announce_commands.which_command = meshScale_Announce_AnnounceCommands_do_announce_command_tag;
         managerNetwork.takePbMessage(newMessage);
 

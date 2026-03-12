@@ -68,26 +68,26 @@ unsigned long managerNetwork_t::loop()
             case meshScale_Instruction_Command_chat_commands_tag:
                 if (incoming.instruction.exec_req.command.chat_commands.which_command == meshScale_Chat_ChatCommands_send_chat_tag && incoming.instruction.exec_req.command.chat_commands.send_chat.has_destination_hash)
                 {
-                    Serial.printf("managerNetwork_t: received send chat command to send %s to destination %d\n",
-                                  incoming.instruction.exec_req.command.chat_commands.send_chat.text_string, incoming.instruction.exec_req.command.chat_commands.send_chat.destination_hash);
+                    Serial.printf("managerNetwork_t: received send chat command to send %s to destination %s \n",
+                                  incoming.instruction.exec_req.command.chat_commands.send_chat.text_string, incoming.instruction.exec_req.command.chat_commands.send_chat.destination_hash.hash);
                 }
                 else
                 {
-                    Serial.printf("managerNetwork_t: error handling send chat command\n");
+                    Serial.printf("managerNetwork_t: error handling send chat command \n");
                 }
                 break;
 
             case meshScale_Instruction_Command_announce_commands_tag:
                 if (incoming.instruction.exec_req.command.announce_commands.which_command == meshScale_Announce_AnnounceCommands_do_announce_command_tag)
                 {
-                    Serial.printf("managerNetwork_t: received pbMessage to announce my destination\n");
+                    Serial.printf("managerNetwork_t: received command to announce my destination\n");
                     reticulum_announce();
                 }
                 break;
 
             // unknown instruction type
             default:
-                Serial.printf("[managerNetwork_t::loop] unhandled Instruction.execReq type: %d", incoming.instruction.exec_req.command.which_proto_module);
+                Serial.printf("[managerNetwork_t::loop] unhandled Instruction.execReq type: %d\n", incoming.instruction.exec_req.command.which_proto_module);
                 break;
             }
         }

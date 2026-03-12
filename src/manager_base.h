@@ -16,7 +16,6 @@ public:
     virtual void takePbMessage(meshScale_PbMessage newPbMessage)
     {
         pbMessagesIn.push(newPbMessage);
-        Serial.printf("manager_base: added newPbMessage\n");
     };
 
 protected:
