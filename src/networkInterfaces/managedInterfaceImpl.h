@@ -120,7 +120,7 @@ protected:
     void send_outgoing(const RNS::Bytes &data)
     {
         // locking queue because both handlerNetworkInterfaces and reticulum.loop() can call send_outgoing
-        std::lock_guard<queueL<RNS::Bytes>> lg(sendQueue);
+        std::lock_guard<resourceLock> lg(sendQueue);
         sendQueue.push(data);
     };
 

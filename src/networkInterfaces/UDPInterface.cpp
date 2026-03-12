@@ -239,6 +239,7 @@ void UDPInterface::transmitOutQueue()
 	{
 		if (_online)
 		{
+			std::lock_guard<resourceLock> lg(sendQueue);
 			while (!sendQueue.empty())
 			{
 				RNS::Bytes data = sendQueue.front();

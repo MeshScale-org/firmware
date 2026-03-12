@@ -141,6 +141,7 @@ void radioLibInterface::transmitOutQueue()
 	{
 		if (_online)
 		{
+			std::lock_guard<resourceLock> lg(sendQueue);
 			while (!sendQueue.empty())
 			{
 				//  Send packet

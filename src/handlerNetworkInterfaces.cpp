@@ -38,7 +38,7 @@ handlerNetworkInterfaces_t::managedInterface_t *handlerNetworkInterfaces_t::crea
     if (ifConfig.ifType == managedInterfaceImpl_t::IF_RADIOLIB)
     {
         Serial.printf("IF_RADIOLIB, ");
-        Module *ifModule = new Module(cs, irq, rst, gpio, spi.get(), spiSettings);
+        Module *ifModule = new Module(cs, irq, rst, gpio, spi, spiSettings);
 
         switch (ifConfig.interfaceConfig.radiolibConfig.radioType)
         {

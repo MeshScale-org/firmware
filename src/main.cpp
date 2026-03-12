@@ -137,8 +137,8 @@ void setupSPI()
 {
   std::lock_guard<resourceLock> lg(SPI0L);
 #ifdef ESP32
-  SPI0L.get().begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
+  SPI0L.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
 #else
-  SPI0L.get().begin();
+  SPI0L.begin();
 #endif
 }

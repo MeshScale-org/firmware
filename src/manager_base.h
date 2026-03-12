@@ -15,6 +15,7 @@ public:
     // All managers have a message queue
     virtual void takePbMessage(meshScale_PbMessage newPbMessage)
     {
+        std::lock_guard<resourceLock> lg(pbMessagesIn);
         pbMessagesIn.push(newPbMessage);
     };
 

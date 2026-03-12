@@ -3,14 +3,15 @@
 #include <SPI.h>
 #include "resourceLock.h"
 
-class SPIClassL : public resourceLock
+// Lockable SPI class. Calling functions are responsable for locking/unlocking
+class SPIClassL : public resourceLock, public SPIClass
 {
 public:
-    SPIClassL(SPIClass &spi) : _spi(spi) {};
-    SPIClass &get() { return _spi; };
-
-private:
-    SPIClass &_spi;
+#if defined(MCU_ESP32)
+    SPIClassL(uint8_t spi_bus) : SPIClass(spi_bus) {};
+#elif defined(MCU_NRF52)
+    SPIClassL(NRF_SPIM_Type *p_spi, uint8_t uc_pinMISO, uint8_t uc_pinSCK, uint8_t uc_pinMOSI) : SPIClass(p_spi, uc_pinMISO, uc_pinSCK, uc_pinMOSI) {};
+#endif
 };
 
 #if defined(MCU_NRF52)
