@@ -350,7 +350,7 @@ void fileSystem::listDir(const char *dir)
 #endif
 }
 
-/*virtua*/ std::list<std::string> fileSystem::list_directory(const char *directory_path)
+/*virtua*/ std::list<std::string> fileSystem::list_directory(const char *directory_path, Callbacks::DirectoryListing callback /*= nullptr*/)
 {
 	TRACE("list_directory: listing directory " + std::string(directory_path));
 	std::list<std::string> files;
@@ -369,6 +369,8 @@ void fileSystem::listDir(const char *dir)
 		if (!file.isDirectory())
 		{
 			char *name = (char *)file.name();
+			if (callback)
+				callback(name);
 			files.push_back(name);
 		}
 		// CBA Following close required to avoid leaking memory
