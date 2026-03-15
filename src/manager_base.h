@@ -1,5 +1,5 @@
 #pragma once
-#include "protocolBuffers/generated/PbMessage.pb.h"
+#include "protocolBuffers/generated/0_PbMessage.pb.h"
 #include "os/concurrency/queueL.h"
 #include <mutex>
 #include <memory>
