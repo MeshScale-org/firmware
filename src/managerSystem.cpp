@@ -23,10 +23,12 @@ unsigned long managerSystem_t::loop()
 
         // distribute PbMessages
         // just copy the PbMessage to every manager for now
-        pbMessagesIn.lock();
+        std::lock_guard<resourceLock> lg(pbMessagesIn);
         while (!pbMessagesIn.empty())
         {
-                // handle the message ourselves here ....
+                // TODO: Make this more secure, efficient, smart.
+                // Is this message (from this Source) allowed? (firewall)
+                // Only send (instruction.*Resp) response to the correct thread (information on a need-to-know basis)
 
                 managerClient.takePbMessage(pbMessagesIn.front());
                 managerHardware.takePbMessage(pbMessagesIn.front());
@@ -35,7 +37,6 @@ unsigned long managerSystem_t::loop()
                 // remove it from our queue
                 pbMessagesIn.pop();
         }
-        pbMessagesIn.unlock();
 
         return systemInterval; // time until next run
 }

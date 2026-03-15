@@ -13,6 +13,7 @@ Jobs:
 
 class managerNetwork_t : public manager_base
 {
+    // singleton class
 public:
     managerNetwork_t(managerNetwork_t &) = delete;
     // get singleton instance
@@ -38,7 +39,10 @@ private:
     void onPacket(const RNS::Bytes &data, const RNS::Packet &packet);
     void reticulum_announce();
     void send_packet();
-    // announce handler
+
+    // Handle specific pbMessage types
+    void handleExecReq(meshScale_Instruction_ExecReq& execReq, meshScale_Source &source) override;
+
 private:
     class announceHandlerClass : public RNS::AnnounceHandler
     {

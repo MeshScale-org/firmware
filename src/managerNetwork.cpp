@@ -54,52 +54,7 @@ void managerNetwork_t::send_packet()
 
 unsigned long managerNetwork_t::loop()
 {
-    while (!pbMessagesIn.empty())
-    {
-        std::shared_ptr<const meshScale_PbMessage> incoming = pbMessagesIn.front();
-        // TODO: give this more oversight and declutter the code by splitting things up in inline functions
-        // if PbMessage == instruction -> auto &instruction = incoming->instruction; handleInstruction(instruction)
-        // Only handle pbmessage.instruction.execReq messages
-        if (incoming->which_content == meshScale_PbMessage_instruction_tag && incoming->instruction.which_instruction == meshScale_Instruction_exec_req_tag && incoming->instruction.exec_req.has_command)
-        {
-            // execReq's we want to handle
-            switch (incoming->instruction.exec_req.command.which_proto_module)
-            {
-            case meshScale_Instruction_Command_chat_commands_tag:
-                if (incoming->instruction.exec_req.command.chat_commands.which_command == meshScale_Chat_ChatCommands_send_chat_tag && incoming->instruction.exec_req.command.chat_commands.send_chat.has_destination_hash)
-                {
-                    Serial.printf("managerNetwork_t: received send chat command to send %s to destination %s \n",
-                                  incoming->instruction.exec_req.command.chat_commands.send_chat.text_string, incoming->instruction.exec_req.command.chat_commands.send_chat.destination_hash.hash);
-                }
-                else
-                {
-                    Serial.printf("managerNetwork_t: error handling send chat command \n");
-                }
-                break;
-
-            case meshScale_Instruction_Command_announce_commands_tag:
-                if (incoming->instruction.exec_req.command.announce_commands.which_command == meshScale_Announce_AnnounceCommands_do_announce_command_tag)
-                {
-                    Serial.printf("managerNetwork_t: received command to announce my destination\n");
-                    reticulum_announce();
-                }
-                break;
-
-            // unknown instruction type
-            default:
-                Serial.printf("[managerNetwork_t::loop] unhandled Instruction.execReq type: %d\n", incoming->instruction.exec_req.command.which_proto_module);
-                break;
-            }
-        }
-        else
-        {
-            Serial.printf("[managerNetwork_t::loop] incoming PbMessage that is not instruction.execReq of unknown type\n");
-        }
-
-        // always remove the handled message
-        pbMessagesIn.pop();
-    }
-
+    handlePbMessages();
     // TODO: reticulum loop should not call the interface hardware, only add commands to a queue
     std::lock_guard<resourceLock> lg(handlerNetworkInterfaces);
     handlerNetworkInterfaces.loop();
@@ -121,6 +76,37 @@ unsigned long managerNetwork_t::loop()
         initDone = true;
         return 50;
     */
+};
+
+void managerNetwork_t::handleExecReq(meshScale_Instruction_ExecReq &execReq, meshScale_Source &source)
+{
+    switch (execReq.command.which_proto_module)
+    {
+    case meshScale_Instruction_Command_chat_commands_tag:
+        if (execReq.command.chat_commands.which_command == meshScale_Chat_ChatCommands_send_chat_tag && execReq.command.chat_commands.send_chat.has_destination_hash)
+        {
+            Serial.printf("managerNetwork_t: received send chat command to send %s to destination %s \n",
+                          execReq.command.chat_commands.send_chat.text_string, execReq.command.chat_commands.send_chat.destination_hash.hash);
+        }
+        else
+        {
+            Serial.printf("managerNetwork_t: error handling send chat command \n");
+        }
+        break;
+
+    case meshScale_Instruction_Command_announce_commands_tag:
+        if (execReq.command.announce_commands.which_command == meshScale_Announce_AnnounceCommands_do_announce_command_tag)
+        {
+            Serial.printf("managerNetwork_t: received command to announce my destination\n");
+            reticulum_announce();
+        }
+        break;
+
+    // unknown instruction type
+    default:
+        Serial.printf("[managerNetwork_t::loop] unhandled Instruction.execReq type: %d\n", execReq.command.which_proto_module);
+        break;
+    }
 };
 
 managerNetwork_t &managerNetwork = managerNetwork_t::getInstance();
