@@ -96,5 +96,5 @@ void variantSetDefaultInterfaces()
   sx1262InterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
   // add to handlerNetworkInterfaces
-  handlerNetworkInterfaces.addInterface(12, handlerNetworkInterfaces.createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
+  handlerNetworkInterfaces.addInterface(1, handlerNetworkInterfaces.createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
 }

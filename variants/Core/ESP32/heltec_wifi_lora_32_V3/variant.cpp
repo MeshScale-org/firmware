@@ -39,7 +39,8 @@ void variantSetDefaultInterfaces()
     sx1262InterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
     // interface ID, interface pair
-    // handlerNetworkInterfaces.addInterface(4, handlerNetworkInterfaces.createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
+    // Commented out as not to spam the sub-ghz during testing
+    // handlerNetworkInterfaces.addInterface(1, handlerNetworkInterfaces.createInterface("sx1262 loraInterface", sx1262InterfaceConfig, radioLimits, SX126X_CS, SX126X_DIO1, SX126X_RESET, SX126X_BUSY, SPI0L));
 
     Serial.println("Setting up wifi IF");
     // wifi interface
@@ -53,5 +54,5 @@ void variantSetDefaultInterfaces()
 
     udpInterfaceConfig.rnsIfMode = RNS::Type::Interface::modes::MODE_FULL;
 
-    handlerNetworkInterfaces.addInterface(7, handlerNetworkInterfaces.createInterface("Wifi Interface", udpInterfaceConfig));
+    handlerNetworkInterfaces.addInterface(2, handlerNetworkInterfaces.createInterface("Wifi Interface", udpInterfaceConfig));
 }
