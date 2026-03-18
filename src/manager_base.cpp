@@ -45,19 +45,23 @@ void manager_base::handleInstruction(meshScale_Instruction instruction)
         switch (instruction.which_instruction)
         {
         case meshScale_Instruction_get_req_tag:
-            handleGetReq(instruction.get_req, instruction.requester);
+            if (instruction.get_req.has_attribute)
+                handleGetReq(instruction.get_req, instruction.requester);
             break;
         case meshScale_Instruction_get_resp_tag:
-            handleGetResp(instruction.get_resp, instruction.requester);
+            if (instruction.get_resp.has_value)
+                handleGetResp(instruction.get_resp, instruction.requester);
             break;
         case meshScale_Instruction_set_req_tag:
-            handleSetReq(instruction.set_req, instruction.requester);
+            if (instruction.set_req.has_attribute && instruction.set_req.has_value)
+                handleSetReq(instruction.set_req, instruction.requester);
             break;
         case meshScale_Instruction_set_resp_tag:
             handleSetResp(instruction.set_resp, instruction.requester);
             break;
         case meshScale_Instruction_exec_req_tag:
-            handleExecReq(instruction.exec_req, instruction.requester);
+            if (instruction.exec_req.has_command)
+                handleExecReq(instruction.exec_req, instruction.requester);
             break;
         case meshScale_Instruction_exec_resp_tag:
             handleExecResp(instruction.exec_resp, instruction.requester);

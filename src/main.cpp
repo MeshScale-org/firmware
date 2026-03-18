@@ -7,8 +7,6 @@
 
 #include <mutex>
 
-RNS::Destination externDestination = RNS::Destination(RNS::Type::NONE);
-
 RNS::Reticulum reticulum({RNS::Type::NONE});
 RNS::FileSystem filesystem(RNS::Type::NONE);
 RNS::Identity identity({RNS::Type::NONE});
@@ -32,8 +30,6 @@ void reticulum_setup()
     reticulum = RNS::Reticulum();
     reticulum.transport_enabled(true);
     reticulum.start();
-
-    Serial.println("Creating Identity instance...");
 
 #if defined(RETICULUM_PACKET_TEST)
     // test data send packet
