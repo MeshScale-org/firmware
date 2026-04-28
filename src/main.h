@@ -15,9 +15,11 @@
 
 // Global RNS instances
 extern RNS::Reticulum reticulum;
-extern RNS::FileSystem filesystem;
 extern RNS::Identity identity;
 extern RNS::Destination destination;
+
+// Global filesystem
+extern microStore::FileSystem filesystem;
 
 extern RNS::Destination externDestination;
 
