@@ -49,7 +49,8 @@ void managerNetwork_t::send_packet()
 
 void managerNetwork_t::reticulum_announce()
 {
-    if (*userDestination)
+    // check if this and internal _obj is not nullptr
+    if (userDestination && *userDestination)
     {
         Serial.printf("Announcing destination...\n");
         userDestination->announce(/*RNS::bytesFromString(noble_gases[RNS::Cryptography::randomnum() % 7])*/);

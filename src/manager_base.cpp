@@ -7,7 +7,7 @@ void manager_base::takePbMessage(std::shared_ptr<const meshScale_PbMessage> newP
     // pop the oldest message to avoid memory leak, messages can be lost if the manager can't keep up
     while (pbMessagesIn.size() > maxQueueSize)
     {
-        Serial.printf("manager_base::takePbMessage: Warning: pbMessagesIn at max size: pop() oldest\n");
+        // Serial.printf("manager_base::takePbMessage: Warning: pbMessagesIn at max size: pop() oldest\n");
         pbMessagesIn.pop();
     }
     pbMessagesIn.push(newPbMessage);

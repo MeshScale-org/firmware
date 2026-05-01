@@ -3,6 +3,8 @@
 
 #include <RadioLib.h>
 #include <microStore/FileSystem.h>
+#include <microStore/Adapters/UniversalFileSystem.h>
+#include <Utilities/OS.h>
 #include "os/concurrency/scheduler.h"
 
 #include <mutex>
@@ -10,15 +12,15 @@
 RNS::Reticulum reticulum({RNS::Type::NONE});
 RNS::Identity identity({RNS::Type::NONE});
 
-microStore::FileSystem filesystem;
-
 void reticulum_setup()
 {
   INFO("Setting up Reticulum...");
 
   try
   {
-    Serial.println("Registering FileSystem with OS...");
+    // Initialize and register filesystem
+    HEAD("Registering FileSystem with OS...", RNS::LOG_TRACE);
+    microStore::FileSystem filesystem{microStore::Adapters::UniversalFileSystem()};
     filesystem.init();
     RNS::Utilities::OS::register_filesystem(filesystem);
 
